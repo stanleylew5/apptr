@@ -1,1 +1,1 @@
-npm run check && npm run eslint
+npm run format && npm run eslint
