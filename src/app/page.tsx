@@ -1,9 +1,9 @@
-import Example from "@/components/example";
+import SignIn from "@/components/signin";
 
 const Home = () => {
   return (
     <>
-      <Example />
+      <SignIn />
     </>
   );
 };
