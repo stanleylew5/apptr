@@ -21,12 +21,10 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -39,8 +37,6 @@ const Navbar = () => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) return console.error(error.message);
-
-    // force a navigation + refresh
     router.push("/");
     router.refresh();
   };
@@ -48,15 +44,12 @@ const Navbar = () => {
   return (
     <nav className="w-full border-b bg-white">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
-        {/* Left side */}
         <button
           onClick={() => router.push("/")}
           className="text-lg font-semibold text-gray-900"
         >
           MyApp
         </button>
-
-        {/* Right side */}
         <div>
           {session ? (
             <button
