@@ -2,7 +2,40 @@
 
 import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+
+
+type Half = "top" | "bottom";
+
+type CellAvailability = {
+  top: boolean;
+  bottom: boolean;
+};
+
+type Availability = {
+  [day: string]: {
+    [hour: number]: CellAvailability;
+  };
+};
+
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+
+const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
+
+function getCell(
+  availability: Availability,
+  day: string,
+  hour: number
+): CellAvailability {
+  return availability[day]?.[hour] ?? EMPTY_CELL;
+}
+
+function formatHour(hour: number) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display}:00 ${suffix}`;
+}
 
 interface PageHeaderProps {
   description: string;
@@ -38,63 +71,77 @@ function PageHeader({
   );
 }
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
-
 interface CellProps {
-  state: { top: boolean; bottom: boolean };
-  onToggleTop: () => void;
-  onToggleBottom: () => void;
+  value: CellAvailability;
+  onToggle: (half: Half) => void;
 }
 
-function Cell({ state, onToggleTop, onToggleBottom }: CellProps) {
+function Cell({ value, onToggle }: CellProps) {
+  const handleKeyDown = (
+    e: React.KeyboardEvent,
+    half: Half
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onToggle(half);
+    }
+  };
+
   return (
-    <div className="relative h-10 w-full border border-gray-200">
+    <div className="relative h-10 w-full border border-gray-200 select-none">
       <div
-        onClick={onToggleTop}
+        role="button"
+        tabIndex={0}
+        aria-pressed={value.top}
+        onClick={() => onToggle("top")}
+        onKeyDown={(e) => handleKeyDown(e, "top")}
         className={`absolute inset-x-0 top-0 h-1/2 cursor-pointer ${
-          state.top ? "bg-blue-300" : ""
+          value.top ? "bg-blue-300" : ""
         }`}
       />
-
       <div
-        onClick={onToggleBottom}
+        role="button"
+        tabIndex={0}
+        aria-pressed={value.bottom}
+        onClick={() => onToggle("bottom")}
+        onKeyDown={(e) => handleKeyDown(e, "bottom")}
         className={`absolute inset-x-0 bottom-0 h-1/2 cursor-pointer ${
-          state.bottom ? "bg-blue-300" : ""
+          value.bottom ? "bg-blue-300" : ""
         }`}
       />
     </div>
   );
 }
 
-function formatHour(hour: number) {
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const display = hour > 12 ? hour - 12 : hour;
-  return `${display}:00 ${suffix}`;
-}
-
 //TODO: add drag-to-select
 // add hover preview shading/dashed outline
 //TODO: add clear all and save availability buttons
 const Page = () => {
-  const [availability, setAvailability] = useState<
-    Record<string, { top: boolean; bottom: boolean }>
-  >({});
+  const [availability, setAvailability] = useState<Availability>({});
 
-  function toggleHalf(day: string, time: number, half: "top" | "bottom") {
-    const key = `${day}-${time}`;
-
-    setAvailability((prev) => {
-      const current = prev[key] ?? { top: false, bottom: false };
-      return {
-        ...prev,
-        [key]: {
-          ...current,
-          [half]: !current[half],
+  function toggleHalf(day: string, hour: number, half: Half) {
+    setAvailability((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [hour]: {
+          ...getCell(prev, day, hour),
+          [half]: !getCell(prev, day, hour)[half],
         },
-      };
-    });
+      },
+    }));
   }
+
+  const selectedCount = useMemo(() => {
+    let count = 0;
+    for (const day of Object.values(availability)) {
+      for (const cell of Object.values(day)) {
+        if (cell.top) count++;
+        if (cell.bottom) count++;
+      }
+    }
+    return count;
+  }, [availability]);
 
   return (
     <div>
@@ -122,58 +169,55 @@ const Page = () => {
           Edit Your Availability
         </h2>
         <div className="flex gap-2">
-          <p>Click and drag to select your available times. Selected slots: </p>
-          <p className="text-blue-800">{31}</p>
+          <p>Click and drag to select your available times. Selected slots:</p>
+          <p className="font-semibold text-blue-800">
+            {selectedCount}
+          </p>
         </div>
       </div>
 
       <div className="flex justify-center">
-        <div className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)]">
-          <div></div>
+        <div className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)] select-none">
+          <div />
 
           {days.map((day) => (
-            <div key={day} className="bg-blue-100 text-center font-semibold">
+            <div
+              key={day}
+              className="bg-blue-100 text-center font-semibold"
+            >
               {day}
             </div>
           ))}
 
-          {times.map((time) => (
-            <React.Fragment key={time}>
+          {times.map((hour) => (
+            <React.Fragment key={hour}>
               <div className="pr-2 text-right font-medium">
-                {formatHour(time)}
+                {formatHour(hour)}
               </div>
 
-              {days.map((day) => {
-                const key = `${day}-${time}`;
-                const state = availability[key] ?? {
-                  top: false,
-                  bottom: false,
-                };
-
-                return (
-                  <Cell
-                    key={key}
-                    state={state}
-                    onToggleTop={() => toggleHalf(day, time, "top")}
-                    onToggleBottom={() => toggleHalf(day, time, "bottom")}
-                  />
-                );
-              })}
+              {days.map((day) => (
+                <Cell
+                  key={`${day}-${hour}`}
+                  value={getCell(availability, day, hour)}
+                  onToggle={(half) =>
+                    toggleHalf(day, hour, half)
+                  }
+                />
+              ))}
             </React.Fragment>
           ))}
         </div>
       </div>
 
-      <div className="mx-auto mt-4 flex max-w-6xl place-items-center justify-end gap-3 font-medium mb-4">
-          <button className="border border-gray-300 rounded-lg px-2">
-            Clear All
-          </button>
-          <button className="bg-blue-800 text-white rounded-lg px-2 flex gap-2 place-items-center">
-            <Save className="h-4 w-4" />
-            Save Availability
-          </button>
+      <div className="mx-auto mt-4 mb-4 flex max-w-6xl items-center justify-end gap-3 font-medium">
+        <button className="rounded-lg border border-gray-300 px-2">
+          Clear All
+        </button>
+        <button className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white">
+          <Save className="h-4 w-4" />
+          Save Availability
+        </button>
       </div>
-
     </div>
   );
 };
