@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  LucideIcon,
-  Users,
-} from "lucide-react";
+import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useState } from "react";
 
 interface PageHeaderProps {
@@ -21,10 +18,10 @@ function PageHeader({
   icon: Icon,
 }: PageHeaderProps) {
   return (
-    <div className="flex mt-4 px-1 max-w-6xl mx-auto place-items-center justify-between">
+    <div className="mx-auto mt-4 flex max-w-6xl place-items-center justify-between px-1">
       <div className="flex items-center gap-5">
         <div className="flex h-17 w-17 place-items-center justify-center rounded-lg bg-blue-800">
-          <Icon className="h-9 w-9 text-white"/>
+          <Icon className="h-9 w-9 text-white" />
         </div>
         <div className="flex flex-col gap-2">
           <h2 className="text-5xl font-bold text-blue-800">Apptr</h2>
@@ -33,7 +30,9 @@ function PageHeader({
       </div>
 
       <div>
-        <Link href={linkPath} className="font-semibold">{linkText}</Link>
+        <Link href={linkPath} className="font-semibold">
+          {linkText}
+        </Link>
       </div>
     </div>
   );
@@ -47,7 +46,6 @@ interface CellProps {
   onToggleTop: () => void;
   onToggleBottom: () => void;
 }
-
 
 function Cell({ state, onToggleTop, onToggleBottom }: CellProps) {
   return (
@@ -75,9 +73,9 @@ function formatHour(hour: number) {
   return `${display}:00 ${suffix}`;
 }
 
-//TODO: add drag-to-select 
+//TODO: add drag-to-select
 // add hover preview shading/dashed outline
-//TODO: add clear all and save availability buttonsg
+//TODO: add clear all and save availability buttons
 const Page = () => {
   const [availability, setAvailability] = useState<
     Record<string, { top: boolean; bottom: boolean }>
@@ -86,7 +84,7 @@ const Page = () => {
   function toggleHalf(day: string, time: number, half: "top" | "bottom") {
     const key = `${day}-${time}`;
 
-    setAvailability(prev => {
+    setAvailability((prev) => {
       const current = prev[key] ?? { top: false, bottom: false };
       return {
         ...prev,
@@ -108,25 +106,29 @@ const Page = () => {
       />
 
       <div className="flex flex-col gap-0.5 px-20">
-        <h2 className="text-3xl font-bold text-blue-800">Welcome, Stanley Lew!</h2>
+        <h2 className="text-3xl font-bold text-blue-800">
+          Welcome, Stanley Lew!
+        </h2>
         <p className="text-blue-400">You have {2} interviews</p>
       </div>
 
-      <div className="flex gap-5 px-4 p-1 bg-gray-100 max-w-6xl mx-auto">
+      <div className="mx-auto flex max-w-6xl gap-5 bg-gray-100 p-1 px-4">
         <p>My Schedule</p>
         <p>Edit Availability</p>
       </div>
 
       <div className="flex flex-col px-20">
-        <h2 className="text-2xl font-bold text-blue-800">Edit Your Availability</h2>
+        <h2 className="text-2xl font-bold text-blue-800">
+          Edit Your Availability
+        </h2>
         <div className="flex gap-2">
-          <p>Click and drag to select you available times. Selected slots: </p>
-          <p className="text-blue-800">31</p>
+          <p>Click and drag to select your available times. Selected slots: </p>
+          <p className="text-blue-800">{31}</p>
         </div>
       </div>
 
-      <div className="flex justify-center ">
-        <div className="grid grid-cols-[max-content_repeat(7,1fr)] max-w-5xl w-full">
+      <div className="flex justify-center">
+        <div className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)]">
           <div></div>
 
           {days.map((day) => (
@@ -137,13 +139,16 @@ const Page = () => {
 
           {times.map((time) => (
             <React.Fragment key={time}>
-              <div className="text-right pr-2 font-medium">
+              <div className="pr-2 text-right font-medium">
                 {formatHour(time)}
               </div>
 
               {days.map((day) => {
                 const key = `${day}-${time}`;
-                const state = availability[key] ?? { top: false, bottom: false };
+                const state = availability[key] ?? {
+                  top: false,
+                  bottom: false,
+                };
 
                 return (
                   <Cell
@@ -158,9 +163,19 @@ const Page = () => {
           ))}
         </div>
       </div>
+
+      <div className="mx-auto mt-4 flex max-w-6xl place-items-center justify-end gap-3 font-medium mb-4">
+          <button className="border border-gray-300 rounded-lg px-2">
+            Clear All
+          </button>
+          <button className="bg-blue-800 text-white rounded-lg px-2 flex gap-2 place-items-center">
+            <Save className="h-4 w-4" />
+            Save Availability
+          </button>
+      </div>
+
     </div>
   );
 };
-
 
 export default Page;
