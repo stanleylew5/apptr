@@ -1,7 +1,7 @@
 "use client";
+import { Roles } from "@/components/welcome/roles";
 import { AccessDenied } from "@/components/accessdenied";
 import { useSession } from "@/utils/useSession";
-import Availability from "@/components/availability/availability";
 
 const Page = () => {
   const { session, isLoading } = useSession();
@@ -18,7 +18,7 @@ const Page = () => {
     return <AccessDenied />;
   }
 
-  return <Availability />;
+  return <Roles />;
 };
 
 export default Page;

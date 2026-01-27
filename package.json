@@ -12,9 +12,10 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
     "@tanstack/react-query": "5.69.0",
     "lucide-react": "0.484.0",
-    "next": "^15.5.9",
+    "next": "^15.5.10",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
@@ -34,7 +35,7 @@
     "globals": "16.0.0",
     "husky": "9.1.7",
     "postcss": "8.5.3",
-    "prettier": "3.5.3",
+    "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "0.6.11",
     "tailwindcss": "4.0.17",
     "typescript": "5.5.4",
