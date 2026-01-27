@@ -35,7 +35,7 @@ const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
 function getCell(
   availability: Availability,
   day: string,
-  hour: number
+  hour: number,
 ): CellAvailability {
   return availability[day]?.[hour] ?? EMPTY_CELL;
 }
@@ -125,10 +125,7 @@ function Cell({
     onApply(day, hour, half, dragState.targetValue);
   }
 
-  function handleKeyDown(
-    e: React.KeyboardEvent,
-    half: Half
-  ) {
+  function handleKeyDown(e: React.KeyboardEvent, half: Half) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onApply(day, hour, half, !value[half]);
@@ -177,23 +174,23 @@ const Page = () => {
     visited: Set<string>;
   } | null>(null);
 
-  function applyHalf(
-  day: string,
-  hour: number,
-  half: Half,
-  value: boolean
-) {
-  setAvailability((prev) => ({
-    ...prev,
-    [day]: {
-      ...prev[day],
-      [hour]: {
-        ...getCell(prev, day, hour),
-        [half]: value,
+  function applyHalf(day: string, hour: number, half: Half, value: boolean) {
+    setAvailability((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [hour]: {
+          ...getCell(prev, day, hour),
+          [half]: value,
+        },
       },
-    },
-  }));
-}
+    }));
+  }
+
+  function clearAll() {
+    setDragState(null);
+    setAvailability({});
+  }
 
   const selectedCount = useMemo(() => {
     let count = 0;
@@ -233,9 +230,7 @@ const Page = () => {
         </h2>
         <div className="flex gap-2">
           <p>Click and drag to select your available times. Selected slots:</p>
-          <p className="font-semibold text-blue-800">
-            {selectedCount}
-          </p>
+          <p className="font-semibold text-blue-800">{selectedCount}</p>
         </div>
       </div>
 
@@ -248,10 +243,7 @@ const Page = () => {
           <div />
 
           {days.map((day) => (
-            <div
-              key={day}
-              className="bg-blue-100 text-center font-semibold"
-            >
+            <div key={day} className="bg-blue-100 text-center font-semibold">
               {day}
             </div>
           ))}
@@ -279,7 +271,10 @@ const Page = () => {
       </div>
 
       <div className="mx-auto mt-4 mb-4 flex max-w-6xl items-center justify-end gap-3 font-medium">
-        <button className="rounded-lg border border-gray-300 px-2">
+        <button
+          onClick={clearAll}
+          className="rounded-lg border border-gray-300 px-2"
+        >
           Clear All
         </button>
         <button className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white">
