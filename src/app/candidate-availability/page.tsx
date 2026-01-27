@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // Types ----------------------------------------------------
 
@@ -24,6 +24,12 @@ type DragState = {
   targetValue: boolean;
   visited: Set<string>;
 } | null;
+
+type TimeBlock = {
+  day: string;
+  startTime: string;
+  endTime: string;
+};
 
 // Consts & Helpers ------------------------------------------
 
@@ -162,18 +168,12 @@ function Cell({
 
 // Page ----------------------------------------------------
 
-//TODO: add drag-to-select
-// add hover preview shading/dashed outline
-//TODO: add clear all and save availability buttons
 const Page = () => {
   const [availability, setAvailability] = useState<Availability>({});
+  const [dragState, setDragState] = useState<DragState>(null);
+  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
 
-  const [dragState, setDragState] = useState<{
-    active: boolean;
-    targetValue: boolean;
-    visited: Set<string>;
-  } | null>(null);
-
+  // Apply a half-cell value
   function applyHalf(day: string, hour: number, half: Half, value: boolean) {
     setAvailability((prev) => ({
       ...prev,
@@ -190,8 +190,56 @@ const Page = () => {
   function clearAll() {
     setDragState(null);
     setAvailability({});
+    setTimeBlocks([]);
   }
 
+  // Keep `timeBlocks` in sync with `availability` so it's always available in state.
+  useEffect(() => {
+    const blocks: TimeBlock[] = [];
+
+    for (const day of days) {
+      // Build an ordered list of half-hour slots for the provided `times`.
+      // Each hour contributes two slots: top (00-30) and bottom (30-00).
+      type HalfSlot = { selected: boolean; start: string; end: string };
+      const slots: HalfSlot[] = [];
+
+      for (const hour of times) {
+        const cell = getCell(availability, day, hour);
+
+        const topStart = `${hour.toString().padStart(2, "0")}:00`;
+        const topEnd = `${hour.toString().padStart(2, "0")}:30`;
+        slots.push({ selected: cell.top, start: topStart, end: topEnd });
+
+        const bottomStart = `${hour.toString().padStart(2, "0")}:30`;
+        const bottomEnd = `${(hour + 1).toString().padStart(2, "0")}:00`;
+        slots.push({ selected: cell.bottom, start: bottomStart, end: bottomEnd });
+      }
+
+      // Merge consecutive selected slots into larger blocks
+      let i = 0;
+      while (i < slots.length) {
+        if (!slots[i].selected) {
+          i++;
+          continue;
+        }
+
+        const start = slots[i].start;
+        let end = slots[i].end;
+        i++;
+
+        while (i < slots.length && slots[i].selected) {
+          end = slots[i].end;
+          i++;
+        }
+
+        blocks.push({ day, startTime: start, endTime: end });
+      }
+    }
+
+    setTimeBlocks(blocks);
+  }, [availability]);
+
+  // Derived selected count
   const selectedCount = useMemo(() => {
     let count = 0;
     for (const day of Object.values(availability)) {
@@ -277,7 +325,13 @@ const Page = () => {
         >
           Clear All
         </button>
-        <button className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white">
+        <button
+          onClick={() => {
+            console.log("Time Blocks to save:", timeBlocks);
+            // TODO: Send timeBlocks to Supabase here
+          }}
+          className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white"
+        >
           <Save className="h-4 w-4" />
           Save Availability
         </button>
