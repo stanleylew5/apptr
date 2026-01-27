@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
+// Types ----------------------------------------------------
 
 type Half = "top" | "bottom";
 
@@ -17,6 +18,14 @@ type Availability = {
     [hour: number]: CellAvailability;
   };
 };
+
+type DragState = {
+  active: boolean;
+  targetValue: boolean;
+  visited: Set<string>;
+} | null;
+
+// Consts & Helpers ------------------------------------------
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
@@ -36,6 +45,8 @@ function formatHour(hour: number) {
   const display = hour % 12 === 0 ? 12 : hour % 12;
   return `${display}:00 ${suffix}`;
 }
+
+// Page Header ------------------------------------------------
 
 interface PageHeaderProps {
   description: string;
@@ -71,21 +82,58 @@ function PageHeader({
   );
 }
 
+// Cell Component --------------------------------------------
+
 interface CellProps {
+  day: string;
+  hour: number;
   value: CellAvailability;
-  onToggle: (half: Half) => void;
+  onApply: (day: string, hour: number, half: Half, value: boolean) => void;
+  dragState: DragState;
+  setDragState: React.Dispatch<React.SetStateAction<DragState>>;
 }
 
-function Cell({ value, onToggle }: CellProps) {
-  const handleKeyDown = (
+function Cell({
+  day,
+  hour,
+  value,
+  onApply,
+  dragState,
+  setDragState,
+}: CellProps) {
+  function handleMouseDown(half: Half) {
+    const current = value[half];
+    const targetValue = !current;
+    const key = `${day}-${hour}-${half}`;
+
+    setDragState({
+      active: true,
+      targetValue,
+      visited: new Set([key]),
+    });
+
+    onApply(day, hour, half, targetValue);
+  }
+
+  function handleMouseEnter(half: Half) {
+    if (!dragState?.active) return;
+
+    const key = `${day}-${hour}-${half}`;
+    if (dragState.visited.has(key)) return;
+
+    dragState.visited.add(key);
+    onApply(day, hour, half, dragState.targetValue);
+  }
+
+  function handleKeyDown(
     e: React.KeyboardEvent,
     half: Half
-  ) => {
+  ) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      onToggle(half);
+      onApply(day, hour, half, !value[half]);
     }
-  };
+  }
 
   return (
     <div className="relative h-10 w-full border border-gray-200 select-none">
@@ -93,7 +141,8 @@ function Cell({ value, onToggle }: CellProps) {
         role="button"
         tabIndex={0}
         aria-pressed={value.top}
-        onClick={() => onToggle("top")}
+        onMouseDown={() => handleMouseDown("top")}
+        onMouseEnter={() => handleMouseEnter("top")}
         onKeyDown={(e) => handleKeyDown(e, "top")}
         className={`absolute inset-x-0 top-0 h-1/2 cursor-pointer ${
           value.top ? "bg-blue-300" : ""
@@ -103,7 +152,8 @@ function Cell({ value, onToggle }: CellProps) {
         role="button"
         tabIndex={0}
         aria-pressed={value.bottom}
-        onClick={() => onToggle("bottom")}
+        onMouseDown={() => handleMouseDown("bottom")}
+        onMouseEnter={() => handleMouseEnter("bottom")}
         onKeyDown={(e) => handleKeyDown(e, "bottom")}
         className={`absolute inset-x-0 bottom-0 h-1/2 cursor-pointer ${
           value.bottom ? "bg-blue-300" : ""
@@ -113,24 +163,37 @@ function Cell({ value, onToggle }: CellProps) {
   );
 }
 
+// Page ----------------------------------------------------
+
 //TODO: add drag-to-select
 // add hover preview shading/dashed outline
 //TODO: add clear all and save availability buttons
 const Page = () => {
   const [availability, setAvailability] = useState<Availability>({});
 
-  function toggleHalf(day: string, hour: number, half: Half) {
-    setAvailability((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [hour]: {
-          ...getCell(prev, day, hour),
-          [half]: !getCell(prev, day, hour)[half],
-        },
+  const [dragState, setDragState] = useState<{
+    active: boolean;
+    targetValue: boolean;
+    visited: Set<string>;
+  } | null>(null);
+
+  function applyHalf(
+  day: string,
+  hour: number,
+  half: Half,
+  value: boolean
+) {
+  setAvailability((prev) => ({
+    ...prev,
+    [day]: {
+      ...prev[day],
+      [hour]: {
+        ...getCell(prev, day, hour),
+        [half]: value,
       },
-    }));
-  }
+    },
+  }));
+}
 
   const selectedCount = useMemo(() => {
     let count = 0;
@@ -177,7 +240,11 @@ const Page = () => {
       </div>
 
       <div className="flex justify-center">
-        <div className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)] select-none">
+        <div
+          className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)] select-none"
+          onMouseUp={() => setDragState(null)}
+          onMouseLeave={() => setDragState(null)}
+        >
           <div />
 
           {days.map((day) => (
@@ -198,10 +265,12 @@ const Page = () => {
               {days.map((day) => (
                 <Cell
                   key={`${day}-${hour}`}
+                  day={day}
+                  hour={hour}
                   value={getCell(availability, day, hour)}
-                  onToggle={(half) =>
-                    toggleHalf(day, hour, half)
-                  }
+                  onApply={applyHalf}
+                  dragState={dragState}
+                  setDragState={setDragState}
                 />
               ))}
             </React.Fragment>
