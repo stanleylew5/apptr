@@ -1,4 +1,4 @@
-# ACM UCR Website Template
+# Apptr
 
 ![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/typescript-%23407ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
@@ -13,11 +13,11 @@
 
 ## Figma
 
-[ACM UCR Website Template Figma Design File](https://www.figma.com/)
+[Apptr Figma Design File](https://www.figma.com/design/nHpbB9Yqsn5oYgpqj2JbzE/CS178A-Project-Design?node-id=0-1&t=xpDHVnkbEq7PaJzO-1)
 
 ## Node.js
 
-ACM UCR Website Template runs on Node.js Version 20.10.0 and higher. Please ensure you have Node.js installed via the [official website](https://nodejs.org/en).
+Apptr runs on Node.js Version 20.10.0 and higher. Please ensure you have Node.js installed via the [official website](https://nodejs.org/en).
 
 ## Next.js
 
@@ -28,7 +28,8 @@ This project is built using [Next.js](https://nextjs.org), a React framework. Ne
 The following environment variables are required and must be stored in an `.env` file:
 
 ```env
-N/A
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
 ```
 
 ## Commands
