@@ -212,7 +212,11 @@ const Page = () => {
 
         const bottomStart = `${hour.toString().padStart(2, "0")}:30`;
         const bottomEnd = `${(hour + 1).toString().padStart(2, "0")}:00`;
-        slots.push({ selected: cell.bottom, start: bottomStart, end: bottomEnd });
+        slots.push({
+          selected: cell.bottom,
+          start: bottomStart,
+          end: bottomEnd,
+        });
       }
 
       // Merge consecutive selected slots into larger blocks
