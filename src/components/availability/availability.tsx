@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import { PendingApptCard } from "./pendingApptCard";
 
 // Types ----------------------------------------------------
 
@@ -174,7 +175,7 @@ const Availability = () => {
   const [availability, setAvailability] = useState<Availability>({});
   const [dragState, setDragState] = useState<DragState>(null);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
-  const [view, setView] = useState<ViewMode>("availability");
+  const [view, setView] = useState<ViewMode>("schedule");
 
   // Apply a half-cell value
   function applyHalf(day: string, hour: number, half: Half, value: boolean) {
@@ -283,9 +284,9 @@ const Availability = () => {
               : "text-gray-500 hover:text-blue-600"
           }`}
         >
-          My Schedule
+          My Schedule  
         </button>
-        
+
         <button
           onClick={() => setView("availability")}
           className={`px-2 py-1 font-medium ${
@@ -305,7 +306,9 @@ const Availability = () => {
               Edit Your Availability
             </h2>
             <div className="flex gap-2">
-              <p>Click and drag to select your available times. Selected slots:</p>
+              <p>
+                Click and drag to select your available times. Selected slots:
+              </p>
               <p className="font-semibold text-blue-800">{selectedCount}</p>
             </div>
           </div>
@@ -318,7 +321,10 @@ const Availability = () => {
             >
               <div />
               {days.map((day) => (
-                <div key={day} className="bg-blue-100 text-center font-semibold">
+                <div
+                  key={day}
+                  className="bg-blue-100 text-center font-semibold"
+                >
                   {day}
                 </div>
               ))}
@@ -364,12 +370,52 @@ const Availability = () => {
       )}
 
       {view === "schedule" && (
-        <div className="px-20">
-          <h2 className="text-2xl font-bold text-blue-800">My Schedule</h2>
-          <p >
-            This is where confirmed interviews and upcoming events will appear.
-          </p>
-        </div>
+        <>
+          <div className="px-20">
+            <h2 className="text-2xl font-bold text-blue-800">Pending Confirmation</h2>
+            <p>
+              Please review and confirm these interview times
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <PendingApptCard
+              title="Technical Interview"
+              infoItems={[
+                "Wednesday, Dec 11",
+                "2:00 PM - 3:00 PM",
+                "Interviewer: Jane Doe",
+                "Virtual - Zoom Link",
+              ]}
+              onConfirm={() => {
+                console.log("Confirming availability");
+              }}
+              onReschedule={() => {
+                console.log("Rescheduling...");
+              }}
+            />
+
+            <PendingApptCard
+              title="Technical Interview"
+              infoItems={[
+                "Wednesday, Dec 11",
+                "2:00 PM - 3:00 PM",
+                "Interviewer: Jane Doe",
+                "Virtual - Zoom Link",
+              ]}
+              onConfirm={() => {
+                console.log("Confirming availability");
+              }}
+              onReschedule={() => {
+                console.log("Rescheduling...");
+              }}
+            />
+          </div>
+
+          <div className="mt-0.5 px-20">
+            <h2 className="text-2xl font-bold text-blue-800">Confirmed Interviews</h2>
+          </div>
+        </>
       )}
     </div>
   );
