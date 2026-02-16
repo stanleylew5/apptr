@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { PendingApptCard } from "./pendingApptCard";
+import { ConfirmedApptCard } from "./confirmedApptCard";
 
 // Types ----------------------------------------------------
 
@@ -284,7 +285,7 @@ const Availability = () => {
               : "text-gray-500 hover:text-blue-600"
           }`}
         >
-          My Schedule  
+          My Schedule
         </button>
 
         <button
@@ -372,13 +373,13 @@ const Availability = () => {
       {view === "schedule" && (
         <>
           <div className="px-20">
-            <h2 className="text-2xl font-bold text-blue-800">Pending Confirmation</h2>
-            <p>
-              Please review and confirm these interview times
-            </p>
+            <h2 className="text-2xl font-bold text-blue-800">
+              Pending Confirmation
+            </h2>
+            <p>Please review and confirm these interview times</p>
           </div>
-          
-          <div className="space-y-3">
+
+          <div className="space-y-3 mb-3">
             <PendingApptCard
               title="Technical Interview"
               infoItems={[
@@ -413,7 +414,24 @@ const Availability = () => {
           </div>
 
           <div className="mt-0.5 px-20">
-            <h2 className="text-2xl font-bold text-blue-800">Confirmed Interviews</h2>
+            <h2 className="text-2xl font-bold text-blue-800">
+              Confirmed Interviews
+            </h2>
+          </div>
+
+          <div className="space-y-3 mb-3">
+            <ConfirmedApptCard
+              title="HR Interview"
+              infoItems={[
+                "Monday, Dec 9",
+                "10:00 AM - 10:45 AM",
+                "Interviewer: John Doe",
+                "Virtual - Zoom Link",
+              ]}
+              onAddCalendar={() => {
+                console.log("Adding to calendar");
+              }}
+            />
           </div>
         </>
       )}
