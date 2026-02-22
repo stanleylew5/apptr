@@ -259,7 +259,7 @@ const Availability = () => {
     }
     return count;
   }, [availability]);
-// TODO: description should change depending on account role
+  // TODO: description should change depending on account role
   return (
     <div>
       <PageHeader
@@ -268,7 +268,7 @@ const Availability = () => {
         linkText="Switch Role"
         icon={Users}
       />
-{/* TODO: Replace hardcoded name and interview count with real data from props or API  */}
+      {/* TODO: Replace hardcoded name and interview count with real data from props or API  */}
       <div className="flex flex-col gap-0.5 px-20">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {"Stanley Lew!"}
@@ -378,7 +378,7 @@ const Availability = () => {
             </h2>
             <p>Please review and confirm these interview times</p>
           </div>
-
+{/* TODO: Card information for all cards should be replaced with real data from props or API */}
           <div className="mb-3 space-y-3">
             <PendingApptCard
               title="Technical Interview"
