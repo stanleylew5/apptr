@@ -40,7 +40,7 @@ export function ConfirmedApptCard({
             Confirmed
           </div>
           <div>{title}</div>
-        </div>  
+        </div>
 
         <InfoRows items={infoItems} />
       </div>
