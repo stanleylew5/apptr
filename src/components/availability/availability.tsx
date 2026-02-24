@@ -378,7 +378,7 @@ const Availability = () => {
             </h2>
             <p>Please review and confirm these interview times</p>
           </div>
-{/* TODO: Card information for all cards should be replaced with real data from props or API */}
+          {/* TODO: Card information for all cards should be replaced with real data from props or API */}
           <div className="mb-3 space-y-3">
             <PendingApptCard
               title="Technical Interview"
