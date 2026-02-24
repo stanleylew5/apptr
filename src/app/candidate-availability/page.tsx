@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { PendingApptCard } from "./pendingApptCard";
-import { ConfirmedApptCard } from "./confirmedApptCard";
 
 // Types ----------------------------------------------------
-
-type ViewMode = "schedule" | "availability";
 
 type Half = "top" | "bottom";
 
@@ -172,11 +168,10 @@ function Cell({
 
 // Page ----------------------------------------------------
 
-const Availability = () => {
+const Page = () => {
   const [availability, setAvailability] = useState<Availability>({});
   const [dragState, setDragState] = useState<DragState>(null);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
-  const [view, setView] = useState<ViewMode>("schedule");
 
   // Apply a half-cell value
   function applyHalf(day: string, hour: number, half: Half, value: boolean) {
@@ -259,7 +254,7 @@ const Availability = () => {
     }
     return count;
   }, [availability]);
-  // TODO: description should change depending on account role
+
   return (
     <div>
       <PageHeader
@@ -268,175 +263,85 @@ const Availability = () => {
         linkText="Switch Role"
         icon={Users}
       />
-      {/* TODO: Replace hardcoded name and interview count with real data from props or API  */}
+
       <div className="flex flex-col gap-0.5 px-20">
         <h2 className="text-3xl font-bold text-blue-800">
-          Welcome, {"Stanley Lew!"}
+          Welcome, Stanley Lew!
         </h2>
         <p className="text-blue-400">You have {2} interviews</p>
       </div>
 
       <div className="mx-auto flex max-w-6xl gap-5 bg-gray-100 p-1 px-4">
-        <button
-          onClick={() => setView("schedule")}
-          className={`px-2 py-1 font-medium ${
-            view === "schedule"
-              ? "border-b-2 border-blue-800 text-blue-800"
-              : "text-gray-500 hover:text-blue-600"
-          }`}
-        >
-          My Schedule
-        </button>
-
-        <button
-          onClick={() => setView("availability")}
-          className={`px-2 py-1 font-medium ${
-            view === "availability"
-              ? "border-b-2 border-blue-800 text-blue-800"
-              : "text-gray-500 hover:text-blue-600"
-          }`}
-        >
-          Edit Availability
-        </button>
+        <p>My Schedule</p>
+        <p>Edit Availability</p>
       </div>
 
-      {view === "availability" && (
-        <>
-          <div className="flex flex-col px-20">
-            <h2 className="text-2xl font-bold text-blue-800">
-              Edit Your Availability
-            </h2>
-            <div className="flex gap-2">
-              <p>
-                Click and drag to select your available times. Selected slots:
-              </p>
-              <p className="font-semibold text-blue-800">{selectedCount}</p>
-            </div>
-          </div>
+      <div className="flex flex-col px-20">
+        <h2 className="text-2xl font-bold text-blue-800">
+          Edit Your Availability
+        </h2>
+        <div className="flex gap-2">
+          <p>Click and drag to select your available times. Selected slots:</p>
+          <p className="font-semibold text-blue-800">{selectedCount}</p>
+        </div>
+      </div>
 
-          <div className="flex justify-center">
-            <div
-              className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)] select-none"
-              onMouseUp={() => setDragState(null)}
-              onMouseLeave={() => setDragState(null)}
-            >
-              <div />
+      <div className="flex justify-center">
+        <div
+          className="grid w-full max-w-5xl grid-cols-[max-content_repeat(7,1fr)] select-none"
+          onMouseUp={() => setDragState(null)}
+          onMouseLeave={() => setDragState(null)}
+        >
+          <div />
+
+          {days.map((day) => (
+            <div key={day} className="bg-blue-100 text-center font-semibold">
+              {day}
+            </div>
+          ))}
+
+          {times.map((hour) => (
+            <React.Fragment key={hour}>
+              <div className="pr-2 text-right font-medium">
+                {formatHour(hour)}
+              </div>
+
               {days.map((day) => (
-                <div
-                  key={day}
-                  className="bg-blue-100 text-center font-semibold"
-                >
-                  {day}
-                </div>
+                <Cell
+                  key={`${day}-${hour}`}
+                  day={day}
+                  hour={hour}
+                  value={getCell(availability, day, hour)}
+                  onApply={applyHalf}
+                  dragState={dragState}
+                  setDragState={setDragState}
+                />
               ))}
-              {times.map((hour) => (
-                <React.Fragment key={hour}>
-                  <div className="pr-2 text-right font-medium">
-                    {formatHour(hour)}
-                  </div>
-                  {days.map((day) => (
-                    <Cell
-                      key={`${day}-${hour}`}
-                      day={day}
-                      hour={hour}
-                      value={getCell(availability, day, hour)}
-                      onApply={applyHalf}
-                      dragState={dragState}
-                      setDragState={setDragState}
-                    />
-                  ))}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
 
-          <div className="mx-auto mt-4 mb-4 flex max-w-6xl items-center justify-end gap-3 font-medium">
-            <button
-              onClick={clearAll}
-              className="rounded-lg border border-gray-300 px-2"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={() => {
-                console.log("Time Blocks to save:", timeBlocks);
-              }}
-              className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white"
-            >
-              <Save className="h-4 w-4" />
-              Save Availability
-            </button>
-          </div>
-        </>
-      )}
-
-      {view === "schedule" && (
-        <>
-          <div className="px-20">
-            <h2 className="text-2xl font-bold text-blue-800">
-              Pending Confirmation
-            </h2>
-            <p>Please review and confirm these interview times</p>
-          </div>
-          {/* TODO: Card information for all cards should be replaced with real data from props or API */}
-          <div className="mb-3 space-y-3">
-            <PendingApptCard
-              title="Technical Interview"
-              infoItems={[
-                "Wednesday, Dec 11",
-                "2:00 PM - 3:00 PM",
-                "Interviewer: Jane Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onConfirm={() => {
-                console.log("Confirming availability");
-              }}
-              onReschedule={() => {
-                console.log("Rescheduling...");
-              }}
-            />
-
-            <PendingApptCard
-              title="Technical Interview"
-              infoItems={[
-                "Wednesday, Dec 11",
-                "2:00 PM - 3:00 PM",
-                "Interviewer: Jane Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onConfirm={() => {
-                console.log("Confirming availability");
-              }}
-              onReschedule={() => {
-                console.log("Rescheduling...");
-              }}
-            />
-          </div>
-
-          <div className="mt-0.5 px-20">
-            <h2 className="text-2xl font-bold text-blue-800">
-              Confirmed Interviews
-            </h2>
-          </div>
-
-          <div className="mb-3 space-y-3">
-            <ConfirmedApptCard
-              title="HR Interview"
-              infoItems={[
-                "Monday, Dec 9",
-                "10:00 AM - 10:45 AM",
-                "Interviewer: John Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onAddCalendar={() => {
-                console.log("Adding to calendar");
-              }}
-            />
-          </div>
-        </>
-      )}
+      <div className="mx-auto mt-4 mb-4 flex max-w-6xl items-center justify-end gap-3 font-medium">
+        <button
+          onClick={clearAll}
+          className="rounded-lg border border-gray-300 px-2"
+        >
+          Clear All
+        </button>
+        <button
+          onClick={() => {
+            console.log("Time Blocks to save:", timeBlocks);
+            // TODO: Send timeBlocks to Supabase here
+          }}
+          className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white"
+        >
+          <Save className="h-4 w-4" />
+          Save Availability
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Availability;
+export default Page;
