@@ -4,8 +4,6 @@ import Link from "next/link";
 import { LucideIcon, Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
-// Types ----------------------------------------------------
-
 type Half = "top" | "bottom";
 
 type CellAvailability = {
