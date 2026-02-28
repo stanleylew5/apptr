@@ -1,207 +1,33 @@
 "use client";
 
-import Link from "next/link";
-import { LucideIcon, Users, Save } from "lucide-react";
+import { Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { PendingApptCard } from "./pendingApptCard";
-import { ConfirmedApptCard } from "./confirmedApptCard";
+import { PendingApptCard } from "../appointments/pendingCard";
+import { ConfirmedApptCard } from "../appointments/confirmedCard";
+import { PageHeader } from "./pageHeader";
+import { Cell } from "./cell";
 import { availabilityController } from "@/utils/availabilityController";
 import { authController } from "@/utils/authController";
-
-// Types ----------------------------------------------------
-
-type ViewMode = "schedule" | "availability";
-
-type Half = "top" | "bottom";
-
-type CellAvailability = {
-  top: boolean;
-  bottom: boolean;
-};
-
-type Availability = {
-  [dateKey: string]: {
-    [hour: number]: CellAvailability;
-  };
-};
-
-type DragState = {
-  active: boolean;
-  targetValue: boolean;
-  visited: Set<string>;
-} | null;
-
-type TimeBlock = {
-  date: string; // ISO date string (YYYY-MM-DD)
-  startTime: string; // 24-hour format (HH:mm)
-  endTime: string; // 24-hour format (HH:mm)
-};
-
-// Consts & Helpers ------------------------------------------
+import {
+  Availability,
+  ViewMode,
+  DragState,
+  TimeBlock,
+  Half,
+} from "./types";
+import {
+  getCell,
+  formatHour,
+  getNext7Days,
+  formatDateDisplay,
+  getDateKey,
+  parseTimeToHour,
+  convertTo12Hour,
+} from "./utils";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
-const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
-
-function getCell(
-  availability: Availability,
-  dateKey: string,
-  hour: number,
-): CellAvailability {
-  return availability[dateKey]?.[hour] ?? EMPTY_CELL;
-}
-
-function formatHour(hour: number) {
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-  return `${display}:00 ${suffix}`;
-}
-
-// Get next 7 days starting from today
-function getNext7Days(): Date[] {
-  const days: Date[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    days.push(date);
-  }
-
-  return days;
-}
-
-// Format date for display (e.g., "Mon 2/24")
-function formatDateDisplay(date: Date): string {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${days[date.getDay()]} ${month}/${day}`;
-}
-
-// Get date key for storage (YYYY-MM-DD)
-function getDateKey(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
-// Page Header ------------------------------------------------
-
-interface PageHeaderProps {
-  description: string;
-  linkPath: string;
-  linkText: string;
-  icon: LucideIcon;
-}
-
-function PageHeader({
-  description,
-  linkPath,
-  linkText,
-  icon: Icon,
-}: PageHeaderProps) {
-  return (
-    <div className="mx-auto mt-4 flex max-w-6xl place-items-center justify-between px-1">
-      <div className="flex items-center gap-5">
-        <div className="flex h-17 w-17 place-items-center justify-center rounded-lg bg-blue-800">
-          <Icon className="h-9 w-9 text-white" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-5xl font-bold text-blue-800">Apptr</h2>
-          <p>{description}</p>
-        </div>
-      </div>
-
-      <div>
-        <Link href={linkPath} className="font-semibold">
-          {linkText}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// Cell Component --------------------------------------------
-
-interface CellProps {
-  dateKey: string;
-  hour: number;
-  value: CellAvailability;
-  onApply: (dateKey: string, hour: number, half: Half, value: boolean) => void;
-  dragState: DragState;
-  setDragState: React.Dispatch<React.SetStateAction<DragState>>;
-}
-
-function Cell({
-  dateKey,
-  hour,
-  value,
-  onApply,
-  dragState,
-  setDragState,
-}: CellProps) {
-  function handleMouseDown(half: Half) {
-    const current = value[half];
-    const targetValue = !current;
-    const key = `${dateKey}-${hour}-${half}`;
-
-    setDragState({
-      active: true,
-      targetValue,
-      visited: new Set([key]),
-    });
-
-    onApply(dateKey, hour, half, targetValue);
-  }
-
-  function handleMouseEnter(half: Half) {
-    if (!dragState?.active) return;
-
-    const key = `${dateKey}-${hour}-${half}`;
-    if (dragState.visited.has(key)) return;
-
-    dragState.visited.add(key);
-    onApply(dateKey, hour, half, dragState.targetValue);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent, half: Half) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onApply(dateKey, hour, half, !value[half]);
-    }
-  }
-
-  return (
-    <div className="relative h-10 w-full border border-gray-200 select-none">
-      <div
-        role="button"
-        tabIndex={0}
-        aria-pressed={value.top}
-        onMouseDown={() => handleMouseDown("top")}
-        onMouseEnter={() => handleMouseEnter("top")}
-        onKeyDown={(e) => handleKeyDown(e, "top")}
-        className={`absolute inset-x-0 top-0 h-1/2 cursor-pointer ${
-          value.top ? "bg-blue-300" : ""
-        }`}
-      />
-      <div
-        role="button"
-        tabIndex={0}
-        aria-pressed={value.bottom}
-        onMouseDown={() => handleMouseDown("bottom")}
-        onMouseEnter={() => handleMouseEnter("bottom")}
-        onKeyDown={(e) => handleKeyDown(e, "bottom")}
-        className={`absolute inset-x-0 bottom-0 h-1/2 cursor-pointer ${
-          value.bottom ? "bg-blue-300" : ""
-        }`}
-      />
-    </div>
-  );
-}
-
-// Page ----------------------------------------------------
-
-const Availability = () => {
+const AvailabilityX = () => {
   const [availability, setAvailability] = useState<Availability>({});
   const [dragState, setDragState] = useState<DragState>(null);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
@@ -289,24 +115,6 @@ const Availability = () => {
     } catch (error) {
       console.error("Error loading availability:", error);
     }
-  }
-
-  // Parse time string to decimal hour (e.g., "9:30 AM" -> 9.5)
-  function parseTimeToHour(timeStr: string): number {
-    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!match) return 0;
-
-    let hours = parseInt(match[1]);
-    const minutes = parseInt(match[2]);
-    const period = match[3].toUpperCase();
-
-    if (period === "PM" && hours !== 12) {
-      hours += 12;
-    } else if (period === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return hours + minutes / 60;
   }
 
   // Apply a half-cell value
@@ -423,21 +231,6 @@ const Availability = () => {
     } finally {
       setSaving(false);
     }
-  }
-
-  // Convert 24-hour time to 12-hour format
-  function convertTo12Hour(time24: string): string {
-    const [hourStr, minute] = time24.split(":");
-    let hour = parseInt(hourStr);
-    const period = hour >= 12 ? "PM" : "AM";
-
-    if (hour > 12) {
-      hour -= 12;
-    } else if (hour === 0) {
-      hour = 12;
-    }
-
-    return `${hour}:${minute} ${period}`;
   }
 
   // Derived selected count
@@ -651,4 +444,4 @@ const Availability = () => {
   );
 };
 
-export default Availability;
+export default AvailabilityX;
