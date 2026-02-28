@@ -8,9 +8,7 @@ const Page = () => {
   const { session, isLoading } = useSession();
 
   if (isLoading) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   if (!session) {

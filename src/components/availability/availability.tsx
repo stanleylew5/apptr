@@ -8,13 +8,7 @@ import { PageHeader } from "./pageHeader";
 import { Cell } from "./cell";
 import { availabilityController } from "@/utils/availabilityController";
 import { authController } from "@/utils/authController";
-import {
-  Availability,
-  ViewMode,
-  DragState,
-  TimeBlock,
-  Half,
-} from "./types";
+import { Availability, ViewMode, DragState, TimeBlock, Half } from "./types";
 import {
   getCell,
   formatHour,
@@ -73,7 +67,11 @@ const AvailabilityX = () => {
           const endHour = parseTimeToHour(slot.endTime);
 
           // Mark all half-hour slots in this range
-          for (let hour = Math.floor(startHour); hour < Math.floor(endHour); hour++) {
+          for (
+            let hour = Math.floor(startHour);
+            hour < Math.floor(endHour);
+            hour++
+          ) {
             if (!newAvailability[dateKey]) {
               newAvailability[dateKey] = {};
             }
@@ -101,7 +99,10 @@ const AvailabilityX = () => {
               newAvailability[dateKey] = {};
             }
             if (!newAvailability[dateKey][lastHour]) {
-              newAvailability[dateKey][lastHour] = { top: false, bottom: false };
+              newAvailability[dateKey][lastHour] = {
+                top: false,
+                bottom: false,
+              };
             }
             newAvailability[dateKey][lastHour].top = true;
             if (endHour > lastHour + 0.5) {
@@ -216,9 +217,8 @@ const AvailabilityX = () => {
         };
       });
 
-      const success = await availabilityController.saveAvailability(
-        formattedBlocks,
-      );
+      const success =
+        await availabilityController.saveAvailability(formattedBlocks);
 
       if (success) {
         alert("Availability saved successfully!");
@@ -247,7 +247,7 @@ const AvailabilityX = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <div className="text-xl text-gray-600">Loading...</div>
       </div>
     );
@@ -255,7 +255,7 @@ const AvailabilityX = () => {
 
   if (!userId) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <div className="text-xl text-gray-600">
           Please sign in to view this page
         </div>
@@ -327,7 +327,7 @@ const AvailabilityX = () => {
               {weekDates.map((date) => (
                 <div
                   key={getDateKey(date)}
-                  className="bg-blue-100 text-center font-semibold text-sm px-1"
+                  className="bg-blue-100 px-1 text-center text-sm font-semibold"
                 >
                   {formatDateDisplay(date)}
                 </div>
@@ -366,7 +366,7 @@ const AvailabilityX = () => {
             <button
               onClick={saveAvailability}
               disabled={saving}
-              className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               {saving ? "Saving..." : "Save Availability"}
