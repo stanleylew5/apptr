@@ -276,7 +276,6 @@ const AvailabilityX = () => {
         linkText="Switch Role"
         icon={Users}
       />
-      {/* TODO: Replace hardcoded interview count with real data from props or API  */}
       <div className="flex flex-col gap-0.5 px-20">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "Guest!"}
