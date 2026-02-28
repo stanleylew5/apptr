@@ -85,8 +85,8 @@ class AvailabilityController {
    */
   private extractTime(timestamp: string): string {
     const date = new Date(timestamp);
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
+    let hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
     const period = hours >= 12 ? "PM" : "AM";
 
     hours = hours % 12 || 12;
@@ -133,7 +133,7 @@ class AvailabilityController {
     });
   }
 
-  /* Combine date and time strings into ISO timestamp */
+  /* Combine date and time strings into ISO timestamp (UTC) */
   private combineDateTime(dateStr: string, timeStr: string): string {
     // Parse time string (e.g., "9:00 AM")
     const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -153,8 +153,9 @@ class AvailabilityController {
       hours = 0;
     }
 
-    const date = new Date(dateStr);
-    date.setHours(hours, minutes, 0, 0);
+    // Create date at UTC midnight, then set UTC time to avoid timezone offset issues
+    const date = new Date(dateStr + "T00:00:00Z");
+    date.setUTCHours(hours, minutes, 0, 0);
 
     return date.toISOString();
   }
@@ -301,6 +302,48 @@ class AvailabilityController {
     } catch (error) {
       console.error("Unexpected error fetching availability in range:", error);
       return [];
+    }
+  }
+
+  async deleteAvailabilityOutsideRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<boolean> {
+    try {
+      const userId = await authController.getCurrentUserId();
+
+      if (!userId) {
+        console.error("User not authenticated");
+        return false;
+      }
+
+      const startTimestamp = new Date(startDate).toISOString();
+      const endTimestamp = new Date(endDate + "T23:59:59").toISOString();
+
+      // Delete all availability NOT within the specified range
+      const { error } = await this.supabase
+        .from("availability")
+        .delete()
+        .eq("user_id", userId)
+        .or(
+          `start_time.lt.${startTimestamp},start_time.gt.${endTimestamp}`,
+        );
+
+      if (error) {
+        console.error(
+          "Error deleting availability outside range:",
+          error.message,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Unexpected error deleting availability outside range:",
+        error,
+      );
+      return false;
     }
   }
 }
