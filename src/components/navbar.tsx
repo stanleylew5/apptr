@@ -43,12 +43,12 @@ const Navbar = () => {
 
   return (
     <nav className="w-full border-b bg-white">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 items-center justify-between px-6">
         <button
-          onClick={() => router.push("/")}
-          className="text-lg font-semibold text-gray-900"
+          onClick={() => router.push("/welcome")}
+          className="text-lg font-semibold text-gray-900 hover:cursor-pointer"
         >
-          MyApp
+          Apptr
         </button>
         <div>
           {session ? (

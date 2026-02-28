@@ -29,7 +29,7 @@ export function Roles() {
             "View assigned interviews",
             "Manage your schedule",
           ]}
-          linkPath="/availability"
+          linkPath="/interviewer"
           linkText="Continue as Interviewer"
           icon={Users}
         />

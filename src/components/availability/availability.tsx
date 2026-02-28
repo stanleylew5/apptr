@@ -1,191 +1,136 @@
 "use client";
 
-import Link from "next/link";
-import { LucideIcon, Users, Save } from "lucide-react";
+import { Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { PendingApptCard } from "./pendingApptCard";
-import { ConfirmedApptCard } from "./confirmedApptCard";
+import { PendingApptCard } from "../appointments/pendingCard";
+import { ConfirmedApptCard } from "../appointments/confirmedCard";
+import { PageHeader } from "./pageHeader";
+import { Cell } from "./cell";
+import { availabilityController } from "@/utils/availabilityController";
+import { authController } from "@/utils/authController";
+import { Availability, ViewMode, DragState, TimeBlock, Half } from "./types";
+import {
+  getCell,
+  formatHour,
+  getNext7Days,
+  formatDateDisplay,
+  getDateKey,
+  parseTimeToHour,
+  convertTo12Hour,
+} from "./utils";
 
-// Types ----------------------------------------------------
-
-type ViewMode = "schedule" | "availability";
-
-type Half = "top" | "bottom";
-
-type CellAvailability = {
-  top: boolean;
-  bottom: boolean;
-};
-
-type Availability = {
-  [day: string]: {
-    [hour: number]: CellAvailability;
-  };
-};
-
-type DragState = {
-  active: boolean;
-  targetValue: boolean;
-  visited: Set<string>;
-} | null;
-
-type TimeBlock = {
-  day: string;
-  startTime: string;
-  endTime: string;
-};
-
-// Consts & Helpers ------------------------------------------
-
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
-const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
-
-function getCell(
-  availability: Availability,
-  day: string,
-  hour: number,
-): CellAvailability {
-  return availability[day]?.[hour] ?? EMPTY_CELL;
-}
-
-function formatHour(hour: number) {
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-  return `${display}:00 ${suffix}`;
-}
-
-// Page Header ------------------------------------------------
-
-interface PageHeaderProps {
-  description: string;
-  linkPath: string;
-  linkText: string;
-  icon: LucideIcon;
-}
-
-function PageHeader({
-  description,
-  linkPath,
-  linkText,
-  icon: Icon,
-}: PageHeaderProps) {
-  return (
-    <div className="mx-auto mt-4 flex max-w-6xl place-items-center justify-between px-1">
-      <div className="flex items-center gap-5">
-        <div className="flex h-17 w-17 place-items-center justify-center rounded-lg bg-blue-800">
-          <Icon className="h-9 w-9 text-white" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-5xl font-bold text-blue-800">Apptr</h2>
-          <p>{description}</p>
-        </div>
-      </div>
-
-      <div>
-        <Link href={linkPath} className="font-semibold">
-          {linkText}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// Cell Component --------------------------------------------
-
-interface CellProps {
-  day: string;
-  hour: number;
-  value: CellAvailability;
-  onApply: (day: string, hour: number, half: Half, value: boolean) => void;
-  dragState: DragState;
-  setDragState: React.Dispatch<React.SetStateAction<DragState>>;
-}
-
-function Cell({
-  day,
-  hour,
-  value,
-  onApply,
-  dragState,
-  setDragState,
-}: CellProps) {
-  function handleMouseDown(half: Half) {
-    const current = value[half];
-    const targetValue = !current;
-    const key = `${day}-${hour}-${half}`;
-
-    setDragState({
-      active: true,
-      targetValue,
-      visited: new Set([key]),
-    });
-
-    onApply(day, hour, half, targetValue);
-  }
-
-  function handleMouseEnter(half: Half) {
-    if (!dragState?.active) return;
-
-    const key = `${day}-${hour}-${half}`;
-    if (dragState.visited.has(key)) return;
-
-    dragState.visited.add(key);
-    onApply(day, hour, half, dragState.targetValue);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent, half: Half) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onApply(day, hour, half, !value[half]);
-    }
-  }
-
-  return (
-    <div className="relative h-10 w-full border border-gray-200 select-none">
-      <div
-        role="button"
-        tabIndex={0}
-        aria-pressed={value.top}
-        onMouseDown={() => handleMouseDown("top")}
-        onMouseEnter={() => handleMouseEnter("top")}
-        onKeyDown={(e) => handleKeyDown(e, "top")}
-        className={`absolute inset-x-0 top-0 h-1/2 cursor-pointer ${
-          value.top ? "bg-blue-300" : ""
-        }`}
-      />
-      <div
-        role="button"
-        tabIndex={0}
-        aria-pressed={value.bottom}
-        onMouseDown={() => handleMouseDown("bottom")}
-        onMouseEnter={() => handleMouseEnter("bottom")}
-        onKeyDown={(e) => handleKeyDown(e, "bottom")}
-        className={`absolute inset-x-0 bottom-0 h-1/2 cursor-pointer ${
-          value.bottom ? "bg-blue-300" : ""
-        }`}
-      />
-    </div>
-  );
-}
-
-// Page ----------------------------------------------------
-
-const Availability = () => {
+const AvailabilityX = () => {
   const [availability, setAvailability] = useState<Availability>({});
   const [dragState, setDragState] = useState<DragState>(null);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
   const [view, setView] = useState<ViewMode>("schedule");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const weekDates = useMemo(() => getNext7Days(), []);
+
+  // Check authentication and load availability
+  useEffect(() => {
+    async function initialize() {
+      const currentUserId = await authController.getCurrentUserId();
+
+      if (!currentUserId) {
+        setLoading(false);
+        return;
+      }
+
+      setUserId(currentUserId);
+      await loadAvailability();
+      setLoading(false);
+    }
+
+    initialize();
+  }, []);
+
+  // Load availability from Supabase
+  async function loadAvailability() {
+    try {
+      const availabilityData =
+        await availabilityController.getUserAvailabilityForComponent();
+
+      if (availabilityData.length > 0) {
+        const newAvailability: Availability = {};
+
+        availabilityData.forEach((slot) => {
+          const dateKey = slot.day; // Already in YYYY-MM-DD format
+
+          // Parse start and end times
+          const startHour = parseTimeToHour(slot.startTime);
+          const endHour = parseTimeToHour(slot.endTime);
+
+          // Mark all half-hour slots in this range
+          for (
+            let hour = Math.floor(startHour);
+            hour < Math.floor(endHour);
+            hour++
+          ) {
+            if (!newAvailability[dateKey]) {
+              newAvailability[dateKey] = {};
+            }
+            if (!newAvailability[dateKey][hour]) {
+              newAvailability[dateKey][hour] = { top: false, bottom: false };
+            }
+
+            // Check if we need to mark the top half
+            if (startHour <= hour) {
+              newAvailability[dateKey][hour].top = true;
+            } else if (startHour <= hour + 0.5) {
+              newAvailability[dateKey][hour].bottom = true;
+            }
+
+            // Check if we need to mark the bottom half
+            if (endHour > hour + 0.5) {
+              newAvailability[dateKey][hour].bottom = true;
+            }
+          }
+
+          // Handle the last hour if end time is exactly on the hour
+          const lastHour = Math.floor(endHour);
+          if (endHour > lastHour) {
+            if (!newAvailability[dateKey]) {
+              newAvailability[dateKey] = {};
+            }
+            if (!newAvailability[dateKey][lastHour]) {
+              newAvailability[dateKey][lastHour] = {
+                top: false,
+                bottom: false,
+              };
+            }
+            newAvailability[dateKey][lastHour].top = true;
+            if (endHour > lastHour + 0.5) {
+              newAvailability[dateKey][lastHour].bottom = true;
+            }
+          }
+        });
+
+        setAvailability(newAvailability);
+      }
+    } catch (error) {
+      console.error("Error loading availability:", error);
+    }
+  }
 
   // Apply a half-cell value
-  function applyHalf(day: string, hour: number, half: Half, value: boolean) {
+  function applyHalf(
+    dateKey: string,
+    hour: number,
+    half: Half,
+    value: boolean,
+  ) {
     setAvailability((prev) => ({
       ...prev,
-      [day]: {
-        ...prev[day],
+      [dateKey]: {
+        ...prev[dateKey],
         [hour]: {
-          ...getCell(prev, day, hour),
+          ...getCell(prev, dateKey, hour),
           [half]: value,
         },
       },
@@ -198,18 +143,19 @@ const Availability = () => {
     setTimeBlocks([]);
   }
 
-  // Keep `timeBlocks` in sync with `availability` so it's always available in state.
+  // Keep `timeBlocks` in sync with `availability`
   useEffect(() => {
     const blocks: TimeBlock[] = [];
 
-    for (const day of days) {
-      // Build an ordered list of half-hour slots for the provided `times`.
-      // Each hour contributes two slots: top (00-30) and bottom (30-00).
+    for (const date of weekDates) {
+      const dateKey = getDateKey(date);
+
+      // Build an ordered list of half-hour slots
       type HalfSlot = { selected: boolean; start: string; end: string };
       const slots: HalfSlot[] = [];
 
       for (const hour of times) {
-        const cell = getCell(availability, day, hour);
+        const cell = getCell(availability, dateKey, hour);
 
         const topStart = `${hour.toString().padStart(2, "0")}:00`;
         const topEnd = `${hour.toString().padStart(2, "0")}:30`;
@@ -241,12 +187,51 @@ const Availability = () => {
           i++;
         }
 
-        blocks.push({ day, startTime: start, endTime: end });
+        blocks.push({ date: dateKey, startTime: start, endTime: end });
       }
     }
 
     setTimeBlocks(blocks);
-  }, [availability]);
+  }, [availability, weekDates]);
+
+  // Save to Supabase
+  async function saveAvailability() {
+    if (!userId) {
+      alert("Please sign in to save availability");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Convert timeBlocks to the format expected by availabilityController
+      const formattedBlocks = timeBlocks.map((block) => {
+        // Convert 24-hour time to 12-hour format with AM/PM
+        const startTime = convertTo12Hour(block.startTime);
+        const endTime = convertTo12Hour(block.endTime);
+
+        return {
+          day: block.date, // YYYY-MM-DD
+          startTime, // "9:00 AM"
+          endTime, // "11:00 AM"
+        };
+      });
+
+      const success =
+        await availabilityController.saveAvailability(formattedBlocks);
+
+      if (success) {
+        alert("Availability saved successfully!");
+      } else {
+        alert("Failed to save availability");
+      }
+    } catch (error) {
+      console.error("Error saving availability:", error);
+      alert("Failed to save availability");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   // Derived selected count
   const selectedCount = useMemo(() => {
@@ -259,7 +244,25 @@ const Availability = () => {
     }
     return count;
   }, [availability]);
-  // TODO: description should change depending on account role
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-xl text-gray-600">
+          Please sign in to view this page
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
@@ -321,12 +324,12 @@ const Availability = () => {
               onMouseLeave={() => setDragState(null)}
             >
               <div />
-              {days.map((day) => (
+              {weekDates.map((date) => (
                 <div
-                  key={day}
-                  className="bg-blue-100 text-center font-semibold"
+                  key={getDateKey(date)}
+                  className="bg-blue-100 px-1 text-center text-sm font-semibold"
                 >
-                  {day}
+                  {formatDateDisplay(date)}
                 </div>
               ))}
               {times.map((hour) => (
@@ -334,17 +337,20 @@ const Availability = () => {
                   <div className="pr-2 text-right font-medium">
                     {formatHour(hour)}
                   </div>
-                  {days.map((day) => (
-                    <Cell
-                      key={`${day}-${hour}`}
-                      day={day}
-                      hour={hour}
-                      value={getCell(availability, day, hour)}
-                      onApply={applyHalf}
-                      dragState={dragState}
-                      setDragState={setDragState}
-                    />
-                  ))}
+                  {weekDates.map((date) => {
+                    const dateKey = getDateKey(date);
+                    return (
+                      <Cell
+                        key={`${dateKey}-${hour}`}
+                        dateKey={dateKey}
+                        hour={hour}
+                        value={getCell(availability, dateKey, hour)}
+                        onApply={applyHalf}
+                        dragState={dragState}
+                        setDragState={setDragState}
+                      />
+                    );
+                  })}
                 </React.Fragment>
               ))}
             </div>
@@ -358,13 +364,12 @@ const Availability = () => {
               Clear All
             </button>
             <button
-              onClick={() => {
-                console.log("Time Blocks to save:", timeBlocks);
-              }}
-              className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white"
+              onClick={saveAvailability}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              Save Availability
+              {saving ? "Saving..." : "Save Availability"}
             </button>
           </div>
         </>
@@ -439,4 +444,4 @@ const Availability = () => {
   );
 };
 
-export default Availability;
+export default AvailabilityX;
