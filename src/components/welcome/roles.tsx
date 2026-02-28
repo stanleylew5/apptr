@@ -41,7 +41,7 @@ export function Roles() {
             "Accept/decline invitations",
             "View your interview schedule",
           ]}
-          linkPath="/welcome"
+          linkPath="/candidate"
           linkText="Continue as Candidate"
           icon={CircleUser}
         />

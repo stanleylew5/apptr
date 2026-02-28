@@ -1,9 +1,10 @@
+import { supabase } from "@/lib/supabase";
 import {
   createClient,
   SupabaseClient,
-  User,
   Session,
 } from "@supabase/supabase-js";
+import { User } from "@/types/types";
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -16,28 +17,31 @@ class AuthController {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
+  getSupabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
   async getCurrentUser(): Promise<User | null> {
-    try {
-      const {
-        data: { user },
-        error,
-      } = await this.supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (error) {
-        console.error("Error getting current user:", error.message);
-        return null;
-      }
+    if (!user) return null;
 
-      return user;
-    } catch (error) {
-      console.error("Unexpected error getting current user:", error);
-      return null;
-    }
+    const { data, error } = await supabase
+      .from("users")
+      .select("user_id, email, full_name")
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) return null;
+
+    return data || null;
   }
 
   async getCurrentUserId(): Promise<string | null> {
     const user = await this.getCurrentUser();
-    return user?.id || null;
+    return user?.user_id || null;
   }
 
   async getCurrentUserEmail(): Promise<string | null> {
@@ -45,12 +49,17 @@ class AuthController {
     return user?.email || null;
   }
 
+  async getFullName(): Promise<string | null> {
+    const user = await this.getCurrentUser();
+    return user?.full_name || null;
+  }
+
   async getCurrentSession(): Promise<Session | null> {
     try {
       const {
         data: { session },
         error,
-      } = await this.supabase.auth.getSession();
+      } = await supabase.auth.getSession();
 
       if (error) {
         console.error("Error getting current session:", error.message);
@@ -71,7 +80,7 @@ class AuthController {
 
   async signOut(): Promise<void> {
     try {
-      const { error } = await this.supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Error signing out:", error.message);
         throw error;
@@ -82,23 +91,21 @@ class AuthController {
     }
   }
 
-  getSupabaseClient(): SupabaseClient {
-    return this.supabase;
-  }
 
   async getUserById(userId: string): Promise<User | null> {
     try {
-      const {
-        data: { user },
-        error,
-      } = await this.supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from("users")
+        .select("user_id, email, full_name")
+        .eq("user_id", userId)
+        .single();
 
-      if (error || !user || user.id !== userId) {
-        console.error("Cannot fetch other users with anon key");
+      if (error) {
+        console.error("Error fetching user by ID:", error.message);
         return null;
       }
 
-      return user;
+      return data || null;
     } catch (error) {
       console.error("Unexpected error getting user by ID:", error);
       return null;
@@ -110,4 +117,4 @@ export const authController = new AuthController();
 
 export default AuthController;
 
-export type { User, Session } from "@supabase/supabase-js";
+export type { User, Session };

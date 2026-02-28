@@ -2,8 +2,7 @@
 
 import { Users, Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { PendingApptCard } from "../appointments/pendingCard";
-import { ConfirmedApptCard } from "../appointments/confirmedCard";
+import { Schedule } from "../schedule/schedule";
 import { PageHeader } from "./pageHeader";
 import { Cell } from "./cell";
 import { availabilityController } from "@/utils/availabilityController";
@@ -18,6 +17,8 @@ import {
   parseTimeToHour,
   convertTo12Hour,
 } from "./utils";
+import Loading from "../loading";
+import { AccessDenied } from "../accessdenied";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
@@ -29,6 +30,7 @@ const AvailabilityX = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fullName, setFullName] = useState<string | null>(null);
 
   const weekDates = useMemo(() => getNext7Days(), []);
 
@@ -43,12 +45,23 @@ const AvailabilityX = () => {
       }
 
       setUserId(currentUserId);
+      
+      // Fetch user's full name
+      const name = await authController.getFullName();
+      setFullName(name);
+      
+      // Clean up any availability outside the current week to save DB space
+      const startDate = getDateKey(weekDates[0]);
+      const endDate = getDateKey(weekDates[6]);
+      await availabilityController.deleteAvailabilityOutsideRange(startDate, endDate);
+      
+      // Load current week's availability
       await loadAvailability();
       setLoading(false);
     }
 
     initialize();
-  }, []);
+  }, [weekDates]);
 
   // Load availability from Supabase
   async function loadAvailability() {
@@ -56,61 +69,61 @@ const AvailabilityX = () => {
       const availabilityData =
         await availabilityController.getUserAvailabilityForComponent();
 
+      console.log("Fetched availability data:", availabilityData);
+
       if (availabilityData.length > 0) {
         const newAvailability: Availability = {};
+        
+        const validDateKeys = new Set(weekDates.map(date => getDateKey(date))); // make sure the dates are only from the current 7 day window
+        console.log("Valid date keys for this week:", Array.from(validDateKeys));
 
         availabilityData.forEach((slot) => {
-          const dateKey = slot.day; // Already in YYYY-MM-DD format
+          const dateKey = slot.day; // YYYY-MM-DD format
+          const startHour = parseTimeToHour(slot.startTime); // ex: "9:00 AM" -> 9
+          const endHour = parseTimeToHour(slot.endTime); // ex: "10:00 AM" -> 10
 
-          // Parse start and end times
-          const startHour = parseTimeToHour(slot.startTime);
-          const endHour = parseTimeToHour(slot.endTime);
+          console.log(
+            `Processing slot - Date: ${dateKey}, Start: ${slot.startTime} (${startHour}), End: ${slot.endTime} (${endHour})`
+          );
 
-          // Mark all half-hour slots in this range
-          for (
-            let hour = Math.floor(startHour);
-            hour < Math.floor(endHour);
-            hour++
-          ) {
-            if (!newAvailability[dateKey]) {
-              newAvailability[dateKey] = {};
-            }
+          // Only process dates that are in the current week
+          if (!validDateKeys.has(dateKey)) {
+            console.log(`Skipping ${dateKey} - not in current week`);
+            return;
+          }
+
+          // Initialize the date if it doesn't exist
+          if (!newAvailability[dateKey]) {
+            newAvailability[dateKey] = {};
+          }
+
+          // Iterate through each hour that this time slot covers
+          const startHourFloor = Math.floor(startHour);
+          const endHourCeil = Math.ceil(endHour);
+
+          for (let hour = startHourFloor; hour < endHourCeil; hour++) {
+            // Initialize the hour cell if it doesn't exist
             if (!newAvailability[dateKey][hour]) {
               newAvailability[dateKey][hour] = { top: false, bottom: false };
             }
 
-            // Check if we need to mark the top half
-            if (startHour <= hour) {
-              newAvailability[dateKey][hour].top = true;
-            } else if (startHour <= hour + 0.5) {
-              newAvailability[dateKey][hour].bottom = true;
+            const cell = newAvailability[dateKey][hour];
+
+            // Mark top half (00:00 to 00:30)
+            // If start time is at or before this hour AND end time is after this hour
+            if (startHour <= hour && endHour > hour) {
+              cell.top = true;
             }
 
-            // Check if we need to mark the bottom half
-            if (endHour > hour + 0.5) {
-              newAvailability[dateKey][hour].bottom = true;
-            }
-          }
-
-          // Handle the last hour if end time is exactly on the hour
-          const lastHour = Math.floor(endHour);
-          if (endHour > lastHour) {
-            if (!newAvailability[dateKey]) {
-              newAvailability[dateKey] = {};
-            }
-            if (!newAvailability[dateKey][lastHour]) {
-              newAvailability[dateKey][lastHour] = {
-                top: false,
-                bottom: false,
-              };
-            }
-            newAvailability[dateKey][lastHour].top = true;
-            if (endHour > lastHour + 0.5) {
-              newAvailability[dateKey][lastHour].bottom = true;
+            // Mark bottom half (00:30 to 01:00)
+            // If start time is at or before hour + 0.5 AND end time is after hour + 0.5
+            if (startHour <= hour + 0.5 && endHour > hour + 0.5) {
+              cell.bottom = true;
             }
           }
         });
 
+        console.log("Final processed availability:", newAvailability);
         setAvailability(newAvailability);
       }
     } catch (error) {
@@ -217,6 +230,8 @@ const AvailabilityX = () => {
         };
       });
 
+      console.log("Saving formatted blocks:", formattedBlocks);
+
       const success =
         await availabilityController.saveAvailability(formattedBlocks);
 
@@ -246,21 +261,11 @@ const AvailabilityX = () => {
   }, [availability]);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!userId) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-xl text-gray-600">
-          Please sign in to view this page
-        </div>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   return (
@@ -271,10 +276,10 @@ const AvailabilityX = () => {
         linkText="Switch Role"
         icon={Users}
       />
-      {/* TODO: Replace hardcoded name and interview count with real data from props or API  */}
+      {/* TODO: Replace hardcoded interview count with real data from props or API  */}
       <div className="flex flex-col gap-0.5 px-20">
         <h2 className="text-3xl font-bold text-blue-800">
-          Welcome, {"Stanley Lew!"}
+          Welcome, {fullName ? `${fullName}!` : "Guest!"}
         </h2>
         <p className="text-blue-400">You have {2} interviews</p>
       </div>
@@ -375,71 +380,7 @@ const AvailabilityX = () => {
         </>
       )}
 
-      {view === "schedule" && (
-        <>
-          <div className="px-20">
-            <h2 className="text-2xl font-bold text-blue-800">
-              Pending Confirmation
-            </h2>
-            <p>Please review and confirm these interview times</p>
-          </div>
-          {/* TODO: Card information for all cards should be replaced with real data from props or API */}
-          <div className="mb-3 space-y-3">
-            <PendingApptCard
-              title="Technical Interview"
-              infoItems={[
-                "Wednesday, Dec 11",
-                "2:00 PM - 3:00 PM",
-                "Interviewer: Jane Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onConfirm={() => {
-                console.log("Confirming availability");
-              }}
-              onReschedule={() => {
-                console.log("Rescheduling...");
-              }}
-            />
-
-            <PendingApptCard
-              title="Technical Interview"
-              infoItems={[
-                "Wednesday, Dec 11",
-                "2:00 PM - 3:00 PM",
-                "Interviewer: Jane Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onConfirm={() => {
-                console.log("Confirming availability");
-              }}
-              onReschedule={() => {
-                console.log("Rescheduling...");
-              }}
-            />
-          </div>
-
-          <div className="mt-0.5 px-20">
-            <h2 className="text-2xl font-bold text-blue-800">
-              Confirmed Interviews
-            </h2>
-          </div>
-
-          <div className="mb-3 space-y-3">
-            <ConfirmedApptCard
-              title="HR Interview"
-              infoItems={[
-                "Monday, Dec 9",
-                "10:00 AM - 10:45 AM",
-                "Interviewer: John Doe",
-                "Virtual - Zoom Link",
-              ]}
-              onAddCalendar={() => {
-                console.log("Adding to calendar");
-              }}
-            />
-          </div>
-        </>
-      )}
+      {view === "schedule" && <Schedule />}
     </div>
   );
 };
