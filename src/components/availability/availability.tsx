@@ -19,6 +19,7 @@ import {
 } from "./utils";
 import Loading from "../loading";
 import { AccessDenied } from "../accessdenied";
+import { interviewController } from "@/utils/interviewController";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
@@ -31,6 +32,7 @@ const AvailabilityX = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [interviewCount, setInterviewCount] = useState<number>(0);
 
   const weekDates = useMemo(() => getNext7Days(), []);
 
@@ -49,6 +51,10 @@ const AvailabilityX = () => {
       // Fetch user's full name
       const name = await authController.getFullName();
       setFullName(name);
+
+      // Fetch user's interview count
+      const count = await interviewController.getInterviewCountCandidate(currentUserId);
+      setInterviewCount(count);
       
       // Clean up any availability outside the current week to save DB space
       const startDate = getDateKey(weekDates[0]);
@@ -280,7 +286,9 @@ const AvailabilityX = () => {
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "Guest!"}
         </h2>
-        <p className="text-blue-400">You have {2} interviews</p>
+        <p className="text-blue-400">
+          You have {interviewCount} interview{interviewCount !== 1 ? "s" : ""}
+        </p>
       </div>
 
       <div className="mx-auto flex max-w-6xl gap-5 bg-gray-100 p-1 px-4">
