@@ -52,6 +52,12 @@ const AvailabilityX = () => {
       const name = await authController.getFullName();
       setFullName(name);
 
+      // Fetch user's interview count
+      const interviewCount =
+        await interviewController.getInterviewCountCandidate(currentUserId);
+      setInterviewCount(interviewCount);
+      console.log("Interview count for user:", interviewCount);
+
       // Clean up any availability outside the current week to save DB space
       const startDate = getDateKey(weekDates[0]);
       const endDate = getDateKey(weekDates[6]);
