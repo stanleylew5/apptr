@@ -4,7 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
-
+import Image from "next/image";
+import Apptr from "@/public/apptr.svg";
 const Navbar = () => {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -44,12 +45,15 @@ const Navbar = () => {
   return (
     <nav className="w-full border-b bg-white">
       <div className="mx-auto flex h-14 items-center justify-between px-6">
-        <button
-          onClick={() => router.push("/welcome")}
-          className="text-lg font-semibold text-gray-900 hover:cursor-pointer"
-        >
-          Apptr
-        </button>
+        <div className="flex">
+          <Image src={Apptr} alt="Apptr" className="mr-4" />
+          <button
+            onClick={() => router.push("/welcome")}
+            className="text-lg font-semibold text-gray-900 hover:cursor-pointer"
+          >
+            Apptr
+          </button>
+        </div>
         <div>
           {session ? (
             <button

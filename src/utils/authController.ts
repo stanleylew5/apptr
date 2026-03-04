@@ -1,9 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import {
-  createClient,
-  SupabaseClient,
-  Session,
-} from "@supabase/supabase-js";
+import { createClient, SupabaseClient, Session } from "@supabase/supabase-js";
 import { User } from "@/types/types";
 
 // Initialize Supabase client
@@ -90,7 +86,6 @@ class AuthController {
       throw error;
     }
   }
-
 
   async getUserById(userId: string): Promise<User | null> {
     try {

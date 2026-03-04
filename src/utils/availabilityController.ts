@@ -325,9 +325,7 @@ class AvailabilityController {
         .from("availability")
         .delete()
         .eq("user_id", userId)
-        .or(
-          `start_time.lt.${startTimestamp},start_time.gt.${endTimestamp}`,
-        );
+        .or(`start_time.lt.${startTimestamp},start_time.gt.${endTimestamp}`);
 
       if (error) {
         console.error(

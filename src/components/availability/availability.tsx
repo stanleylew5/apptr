@@ -45,16 +45,19 @@ const AvailabilityX = () => {
       }
 
       setUserId(currentUserId);
-      
+
       // Fetch user's full name
       const name = await authController.getFullName();
       setFullName(name);
-      
+
       // Clean up any availability outside the current week to save DB space
       const startDate = getDateKey(weekDates[0]);
       const endDate = getDateKey(weekDates[6]);
-      await availabilityController.deleteAvailabilityOutsideRange(startDate, endDate);
-      
+      await availabilityController.deleteAvailabilityOutsideRange(
+        startDate,
+        endDate,
+      );
+
       // Load current week's availability
       await loadAvailability();
       setLoading(false);
@@ -73,9 +76,14 @@ const AvailabilityX = () => {
 
       if (availabilityData.length > 0) {
         const newAvailability: Availability = {};
-        
-        const validDateKeys = new Set(weekDates.map(date => getDateKey(date))); // make sure the dates are only from the current 7 day window
-        console.log("Valid date keys for this week:", Array.from(validDateKeys));
+
+        const validDateKeys = new Set(
+          weekDates.map((date) => getDateKey(date)),
+        ); // make sure the dates are only from the current 7 day window
+        console.log(
+          "Valid date keys for this week:",
+          Array.from(validDateKeys),
+        );
 
         availabilityData.forEach((slot) => {
           const dateKey = slot.day; // YYYY-MM-DD format
@@ -83,7 +91,7 @@ const AvailabilityX = () => {
           const endHour = parseTimeToHour(slot.endTime); // ex: "10:00 AM" -> 10
 
           console.log(
-            `Processing slot - Date: ${dateKey}, Start: ${slot.startTime} (${startHour}), End: ${slot.endTime} (${endHour})`
+            `Processing slot - Date: ${dateKey}, Start: ${slot.startTime} (${startHour}), End: ${slot.endTime} (${endHour})`,
           );
 
           // Only process dates that are in the current week
