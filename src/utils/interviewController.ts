@@ -11,6 +11,8 @@ class InterviewController {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
   //TODO: create function for interviewer appt count aswell
+
+  //Fetch number of interviews for a candidate
   async getInterviewCountCandidate(userId: string): Promise<number> {
     try {
       const { count, error } = await this.supabase
@@ -32,6 +34,7 @@ class InterviewController {
     }
   }
 
+  // Fetch all appts and appt info for a candidate and put into an interview array 
   async getCandidateInterviews(userId: string): Promise<Interview[]> {
     const { data, error } = await this.supabase
       .from("interviews")
@@ -53,29 +56,28 @@ class InterviewController {
       .order("scheduled_start", { ascending: true });
 
     if (error) throw error;
-
     if (!data) return [];
 
-    const raw = data as RawInterview[];
+    return data.map((item) => this.mapRawInterview(item as RawInterview));
+  }
 
-    const formatted: Interview[] = raw.map((item) => ({
-      interview_id: item.interview_id,
-      scheduled_start: item.scheduled_start,
-      scheduled_end: item.scheduled_end,
+  // Format a raw interview to be used in the frontend
+  private mapRawInterview(item: RawInterview): Interview {
+    const start = new Date(item.scheduled_start);
+    const end = new Date(item.scheduled_end);
+
+    return {
+      id: item.interview_id,
+      title:
+        item.process_round?.[0]?.interview_category?.[0]?.category_name ??
+        "Unknown",
+      date: start.toLocaleDateString(),
+      timeRange: `${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`,
+      interviewerName:
+        item.interviewer?.[0]?.full_name ?? "Unknown",
+      location: "Virtual - Zoom Link",
       status: item.status,
-      interviewer: {
-        full_name: item.interviewer?.[0]?.full_name ?? "Unknown",
-      },
-      process_round: {
-        interview_category: {
-          category_name:
-            item.process_round?.[0]?.interview_category?.[0]?.category_name ??
-            "Unknown",
-        },
-      },
-    }));
-
-    return formatted;
+    };
   }
 }
 

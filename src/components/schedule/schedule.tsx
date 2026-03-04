@@ -48,29 +48,22 @@ export function Schedule() {
         </h2>
         <p>Please review and confirm these interview times</p>
       </div>
-      {/* TODO: Card information for all cards should be replaced with real data from props or API */}
+      
       <div className="mb-3 space-y-3">
-        {pending.map((interview) => {
-          const start = new Date(interview.scheduled_start);
-          const end = new Date(interview.scheduled_end);
-
-          return (
-            <PendingApptCard
-              key={interview.interview_id}
-              title={
-                interview.process_round.interview_category.category_name
-              }
-              infoItems={[
-                start.toLocaleDateString(),
-                `${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`,
-                `Interviewer: ${interview.interviewer.full_name}`,
-                "Virtual - Zoom Link",
-              ]}
-              onConfirm={() => console.log("Confirm")}
-              onReschedule={() => console.log("Reschedule")}
-            />
-          );
-        })}
+        {pending.map((interview) => (
+          <PendingApptCard
+            key={interview.id}
+            title={interview.title}
+            infoItems={[
+              interview.date,
+              interview.timeRange,
+              `Interviewer: ${interview.interviewerName}`,
+              interview.location,
+            ]}
+            onConfirm={() => console.log("Confirm")}
+            onReschedule={() => console.log("Reschedule")}
+          />
+        ))}
       </div>
 
       <div className="mt-0.5 px-20">
@@ -80,95 +73,20 @@ export function Schedule() {
       </div>
 
       <div className="mb-3 space-y-3">
-        {confirmed.map((interview) => {
-          const start = new Date(interview.scheduled_start);
-          const end = new Date(interview.scheduled_end);
-
-          return (
-            <ConfirmedApptCard
-              key={interview.interview_id}
-              title={
-                interview.process_round.interview_category.category_name
-              }
-              infoItems={[
-                start.toLocaleDateString(),
-                `${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`,
-                `Interviewer: ${interview.interviewer.full_name}`,
-                "Virtual - Zoom Link",
-              ]}
-              onAddCalendar={() => console.log("Add to calendar")}
-            />
-          );
-        })}
+        {confirmed.map((interview) => (
+          <ConfirmedApptCard
+            key={interview.id}
+            title={interview.title}
+            infoItems={[
+              interview.date,
+              interview.timeRange,
+              `Interviewer: ${interview.interviewerName}`,
+              interview.location,
+            ]}
+            onAddCalendar={() => console.log("Add to calendar")}
+          />
+        ))}
       </div>
     </>
   );
 }
-
-// export function Schedule() {
-//   return (
-//     <>
-//       <div className="px-20">
-//         <h2 className="text-2xl font-bold text-blue-800">
-//           Pending Confirmation
-//         </h2>
-//         <p>Please review and confirm these interview times</p>
-//       </div>
-//       {/* TODO: Card information for all cards should be replaced with real data from props or API */}
-//       <div className="mb-3 space-y-3">
-//         <PendingApptCard
-//           title="Technical Interview"
-//           infoItems={[
-//             "Wednesday, Dec 11",
-//             "2:00 PM - 3:00 PM",
-//             "Interviewer: Jane Doe",
-//             "Virtual - Zoom Link",
-//           ]}
-//           onConfirm={() => {
-//             console.log("Confirming availability");
-//           }}
-//           onReschedule={() => {
-//             console.log("Rescheduling...");
-//           }}
-//         />
-
-//         <PendingApptCard
-//           title="Technical Interview"
-//           infoItems={[
-//             "Wednesday, Dec 11",
-//             "2:00 PM - 3:00 PM",
-//             "Interviewer: Jane Doe",
-//             "Virtual - Zoom Link",
-//           ]}
-//           onConfirm={() => {
-//             console.log("Confirming availability");
-//           }}
-//           onReschedule={() => {
-//             console.log("Rescheduling...");
-//           }}
-//         />
-//       </div>
-
-//       <div className="mt-0.5 px-20">
-//         <h2 className="text-2xl font-bold text-blue-800">
-//           Confirmed Interviews
-//         </h2>
-//       </div>
-
-//       <div className="mb-3 space-y-3">
-//         <ConfirmedApptCard
-//           title="HR Interview"
-//           infoItems={[
-//             "Monday, Dec 9",
-//             "10:00 AM - 10:45 AM",
-//             "Interviewer: John Doe",
-//             "Virtual - Zoom Link",
-//           ]}
-//           onAddCalendar={() => {
-//             console.log("Adding to calendar");
-//           }}
-//         />
-//       </div>
-//     </>
-//   );
-// }
