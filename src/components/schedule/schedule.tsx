@@ -6,6 +6,7 @@ import { ConfirmedApptCard } from "../appointments/confirmedCard";
 import { interviewController } from "@/utils/interviewController";
 import { createClient } from "@supabase/supabase-js";
 import { Interview } from "./types";
+import { authController } from "@/utils/authController";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +15,7 @@ const supabase = createClient(
 
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [role, setRole] = useState<string>("");
   //TODO: change status from completed/canceled to confirmed/pending in supabase enum type
   const pending = interviews.filter((i) => i.status === "completed");
 
@@ -24,11 +26,13 @@ export function Schedule() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       if (!user) return;
 
-      const data = await interviewController.getCandidateInterviews(user.id);
+      const userRole = await authController.getUserRole(user.id);
+      if (!userRole) return;
+      setRole(userRole);
 
+      const data = await interviewController.getCandidateInterviews(user.id, userRole);
       setInterviews(data);
     };
 
@@ -52,7 +56,9 @@ export function Schedule() {
             infoItems={[
               interview.date,
               interview.timeRange,
-              `Interviewer: ${interview.interviewerName}`,
+              role === "candidate"
+                ? `Interviewer: ${interview.interviewerName}`
+                : `Candidate: ${interview.interviewerName}`,
               interview.location,
             ]}
             //TODO: add real functionality for these buttons
@@ -76,7 +82,9 @@ export function Schedule() {
             infoItems={[
               interview.date,
               interview.timeRange,
-              `Interviewer: ${interview.interviewerName}`,
+              role === "candidate"
+                ? `Interviewer: ${interview.interviewerName}`
+                : `Candidate: ${interview.interviewerName}`,
               interview.location,
             ]}
             //TODO: add real functionality for this button

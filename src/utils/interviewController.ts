@@ -10,7 +10,6 @@ class InterviewController {
   constructor() {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
-  //TODO: create function for interviewer appt count aswell
 
   //Fetch number of interviews for a candidate
   async getInterviewCountCandidate(userId: string): Promise<number> {
@@ -35,30 +34,21 @@ class InterviewController {
   }
 
   // Fetch all appts and appt info for a candidate and put into an interview array
-  async getCandidateInterviews(userId: string): Promise<Interview[]> {
+  async getCandidateInterviews(userId: string, role: string): Promise<Interview[]> {
     const { data, error } = await this.supabase
       .from("interview_details")
-      .select(
-        `
-        interview_id,
-        scheduled_start,
-        scheduled_end,
-        status,
-        interviewer_name,
-        category_name
-      `,
-      )
+      .select("*")
       .eq("candidate_id", userId)
       .order("scheduled_start", { ascending: true });
 
     if (error) throw error;
     if (!data) return [];
 
-    return data.map((item) => this.mapRawInterview(item));
+    return data.map((item) => this.mapRawInterview(item, role));
   }
 
   // Format a raw interview to be used in the frontend
-  private mapRawInterview(item: RawInterview): Interview {
+  private mapRawInterview(item: RawInterview, role: string): Interview {
     const start = new Date(item.scheduled_start);
     const end = new Date(item.scheduled_end);
 
@@ -73,7 +63,10 @@ class InterviewController {
         hour: "2-digit",
         minute: "2-digit",
       })}`,
-      interviewerName: item.interviewer_name ?? "Unknown",
+      interviewerName:
+        role === "candidate"
+          ? item.interviewer_name ?? "Unknown"
+          : item.candidate_name ?? "Unknown",
       location: "Virtual - Zoom Link",
       status: item.status,
     };

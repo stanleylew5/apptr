@@ -5,6 +5,7 @@ export type RawInterview = {
   scheduled_end: string;
   status: string;
   interviewer_name: string | null;
+  candidate_name: string | null;
   category_name: string | null;
 };
 

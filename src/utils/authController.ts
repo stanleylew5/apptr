@@ -106,6 +106,26 @@ class AuthController {
       return null;
     }
   }
+
+  async getUserRole(userId: string): Promise<string | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from("roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error || !data) {
+        console.error("Error fetching user role:", error);
+        return null;
+      }
+
+      return data.role || null;
+    } catch (error) {
+      console.error("Unexpected error getting user role:", error);
+      return null;
+    }
+  }
 }
 
 export const authController = new AuthController();
