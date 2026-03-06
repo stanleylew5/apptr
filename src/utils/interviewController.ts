@@ -34,7 +34,10 @@ class InterviewController {
   }
 
   // Fetch all appts and appt info for a candidate and put into an interview array
-  async getCandidateInterviews(userId: string, role: string): Promise<Interview[]> {
+  async getCandidateInterviews(
+    userId: string,
+    role: string,
+  ): Promise<Interview[]> {
     const { data, error } = await this.supabase
       .from("interview_details")
       .select("*")
@@ -65,8 +68,8 @@ class InterviewController {
       })}`,
       interviewerName:
         role === "candidate"
-          ? item.interviewer_name ?? "Unknown"
-          : item.candidate_name ?? "Unknown",
+          ? (item.interviewer_name ?? "Unknown")
+          : (item.candidate_name ?? "Unknown"),
       location: "Virtual - Zoom Link",
       status: item.status,
     };

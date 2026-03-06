@@ -16,9 +16,8 @@ const supabase = createClient(
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [role, setRole] = useState<string>("");
-  //TODO: change status from completed/canceled to confirmed/pending in supabase enum type
+  //TODO: add confirmed/pending enum types for interview_status in supabase, then change lines below
   const pending = interviews.filter((i) => i.status === "completed");
-
   const confirmed = interviews.filter((i) => i.status === "cancelled");
 
   useEffect(() => {
@@ -32,7 +31,10 @@ export function Schedule() {
       if (!userRole) return;
       setRole(userRole);
 
-      const data = await interviewController.getCandidateInterviews(user.id, userRole);
+      const data = await interviewController.getCandidateInterviews(
+        user.id,
+        userRole,
+      );
       setInterviews(data);
     };
 
