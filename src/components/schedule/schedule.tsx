@@ -55,6 +55,7 @@ export function Schedule() {
               `Interviewer: ${interview.interviewerName}`,
               interview.location,
             ]}
+            //TODO: add real functionality for these buttons
             onConfirm={() => console.log("Confirm")}
             onReschedule={() => console.log("Reschedule")}
           />
@@ -78,6 +79,7 @@ export function Schedule() {
               `Interviewer: ${interview.interviewerName}`,
               interview.location,
             ]}
+            //TODO: add real functionality for this button
             onAddCalendar={() => console.log("Add to calendar")}
           />
         ))}

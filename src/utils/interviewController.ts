@@ -38,14 +38,16 @@ class InterviewController {
   async getCandidateInterviews(userId: string): Promise<Interview[]> {
     const { data, error } = await this.supabase
       .from("interview_details")
-      .select(`
+      .select(
+        `
         interview_id,
         scheduled_start,
         scheduled_end,
         status,
         interviewer_name,
         category_name
-      `)
+      `,
+      )
       .eq("candidate_id", userId)
       .order("scheduled_start", { ascending: true });
 
