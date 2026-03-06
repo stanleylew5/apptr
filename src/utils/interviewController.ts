@@ -34,23 +34,17 @@ class InterviewController {
     }
   }
 
-  // Fetch all appts and appt info for a candidate and put into an interview array 
+  // Fetch all appts and appt info for a candidate and put into an interview array
   async getCandidateInterviews(userId: string): Promise<Interview[]> {
     const { data, error } = await this.supabase
-      .from("interviews")
+      .from("interview_details")
       .select(`
         interview_id,
         scheduled_start,
         scheduled_end,
         status,
-        interviewer:users!interviews_interviewer_id_fkey (
-          full_name
-        ),
-        process_round:process_rounds (
-          interview_category:interview_categories (
-            category_name
-          )
-        )
+        interviewer_name,
+        category_name
       `)
       .eq("candidate_id", userId)
       .order("scheduled_start", { ascending: true });
@@ -58,7 +52,7 @@ class InterviewController {
     if (error) throw error;
     if (!data) return [];
 
-    return data.map((item) => this.mapRawInterview(item as RawInterview));
+    return data.map((item) => this.mapRawInterview(item));
   }
 
   // Format a raw interview to be used in the frontend
@@ -68,13 +62,16 @@ class InterviewController {
 
     return {
       id: item.interview_id,
-      title:
-        item.process_round?.[0]?.interview_category?.[0]?.category_name ??
-        "Unknown",
+      title: item.category_name ?? "Unknown",
       date: start.toLocaleDateString(),
-      timeRange: `${start.toLocaleTimeString()} - ${end.toLocaleTimeString()}`,
-      interviewerName:
-        item.interviewer?.[0]?.full_name ?? "Unknown",
+      timeRange: `${start.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })} - ${end.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+      interviewerName: item.interviewer_name ?? "Unknown",
       location: "Virtual - Zoom Link",
       status: item.status,
     };

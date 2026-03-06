@@ -9,19 +9,15 @@ import { Interview } from "./types";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
-//TODO: change status from completed/canceled to confirmed/pending in supabase enum type
-  const pending = interviews.filter(
-    (i) => i.status === "completed"
-  );
+  //TODO: change status from completed/canceled to confirmed/pending in supabase enum type
+  const pending = interviews.filter((i) => i.status === "completed");
 
-  const confirmed = interviews.filter(
-    (i) => i.status === "canceled"
-  );
+  const confirmed = interviews.filter((i) => i.status === "cancelled");
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -31,8 +27,7 @@ export function Schedule() {
 
       if (!user) return;
 
-      const data =
-        await interviewController.getCandidateInterviews(user.id);
+      const data = await interviewController.getCandidateInterviews(user.id);
 
       setInterviews(data);
     };
@@ -48,7 +43,7 @@ export function Schedule() {
         </h2>
         <p>Please review and confirm these interview times</p>
       </div>
-      
+
       <div className="mb-3 space-y-3">
         {pending.map((interview) => (
           <PendingApptCard

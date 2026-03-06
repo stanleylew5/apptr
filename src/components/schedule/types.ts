@@ -1,12 +1,11 @@
+//TODO: Add location column to interviews table in DB and add it to this type
 export type RawInterview = {
   interview_id: string;
   scheduled_start: string;
   scheduled_end: string;
   status: string;
-  interviewer: { full_name: string }[];
-  process_round: {
-    interview_category: { category_name: string }[];
-  }[];
+  interviewer_name: string | null;
+  category_name: string | null;
 };
 
 export interface Interview {
