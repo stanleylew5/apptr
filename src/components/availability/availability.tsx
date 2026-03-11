@@ -1,9 +1,11 @@
 "use client";
 
-import { Users, Save } from "lucide-react";
+import { Save } from "lucide-react";
+/* import { Users } from "lucide-react";
+import { PageHeader } from "./pageHeader"; */
 import React, { useEffect, useMemo, useState } from "react";
 import { Schedule } from "../schedule/schedule";
-import { PageHeader } from "./pageHeader";
+
 import { Cell } from "./cell";
 import { availabilityController } from "@/utils/availabilityController";
 import { authController } from "@/utils/authController";
@@ -278,12 +280,12 @@ const AvailabilityX = () => {
 
   return (
     <div>
-      <PageHeader
+      {/* <PageHeader
         description="Candidate Portal"
         linkPath="/welcome"
         linkText="Switch Role"
         icon={Users}
-      />
+      /> */}
       <div className="flex flex-col gap-0.5 px-20">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "Guest!"}

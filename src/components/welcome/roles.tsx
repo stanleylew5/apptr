@@ -17,7 +17,7 @@ export function Roles() {
             "Assign interviewers to roles",
             "Manage candidates",
           ]}
-          linkPath="/welcome"
+          linkPath="/coordinator"
           linkText="Continue as Coordinator"
           icon={Settings}
         />
