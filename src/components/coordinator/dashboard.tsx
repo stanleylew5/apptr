@@ -17,7 +17,7 @@ const Dashboard = () => {
 
   return (
     <div className="px-20 py-10">
-      <div className="flex flex-col gap-0.5 mb-12">
+      <div className="mb-12 flex flex-col gap-0.5">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "Guest!"}
         </h2>
@@ -26,9 +26,9 @@ const Dashboard = () => {
       <div className="flex flex-col gap-6">
         <div
           onClick={() => router.push("/coordinator/process/create")}
-          className="bg-white border-2 border-blue-200 rounded-lg p-8 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-200 transform hover:scale-105"
+          className="transform cursor-pointer rounded-lg border-2 border-blue-200 bg-white p-8 transition-all duration-200 hover:scale-105 hover:border-blue-400 hover:shadow-lg"
         >
-          <div className="flex items-center gap-4 mb-4">
+          <div className="mb-4 flex items-center gap-4">
             <h3 className="text-2xl font-bold text-blue-800">
               Create New Process
             </h3>
@@ -41,9 +41,9 @@ const Dashboard = () => {
 
         <div
           onClick={() => router.push("/coordinator/process/view")}
-          className="bg-white border-2 border-purple-200 rounded-lg p-8 cursor-pointer hover:shadow-lg hover:border-purple-400 transition-all duration-200 transform hover:scale-105"
+          className="transform cursor-pointer rounded-lg border-2 border-purple-200 bg-white p-8 transition-all duration-200 hover:scale-105 hover:border-purple-400 hover:shadow-lg"
         >
-          <div className="flex items-center gap-4 mb-4">
+          <div className="mb-4 flex items-center gap-4">
             <h3 className="text-2xl font-bold text-purple-800">
               View Processes
             </h3>
