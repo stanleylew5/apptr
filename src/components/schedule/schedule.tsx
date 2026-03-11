@@ -1,10 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PendingApptCard } from "../appointments/pendingCard";
 import { ConfirmedApptCard } from "../appointments/confirmedCard";
+import { interviewController } from "@/controllers/interview";
+import { Interview } from "./types";
+import { authController } from "@/controllers/auth";
 
 export function Schedule() {
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [role, setRole] = useState<string>("");
+  //TODO: add confirmed/pending enum types for interview_status in supabase, then change lines below
+  const pending = interviews.filter((i) => i.status === "completed");
+  const confirmed = interviews.filter((i) => i.status === "cancelled");
+
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      const user = await authController.getCurrentUser();
+      if (!user) return;
+
+      const userRole = await authController.getUserPrimaryRole(user);
+      if (!userRole) return;
+      setRole(userRole);
+
+      const data = await interviewController.getCandidateInterviews(
+        user.user_id,
+        userRole,
+      );
+      setInterviews(data);
+    };
+
+    fetchInterviews();
+  }, []);
+
   return (
     <>
       <div className="px-20">
@@ -13,39 +41,25 @@ export function Schedule() {
         </h2>
         <p>Please review and confirm these interview times</p>
       </div>
-      {/* TODO: Card information for all cards should be replaced with real data from props or API */}
-      <div className="mb-3 space-y-3">
-        <PendingApptCard
-          title="Technical Interview"
-          infoItems={[
-            "Wednesday, Dec 11",
-            "2:00 PM - 3:00 PM",
-            "Interviewer: Jane Doe",
-            "Virtual - Zoom Link",
-          ]}
-          onConfirm={() => {
-            console.log("Confirming availability");
-          }}
-          onReschedule={() => {
-            console.log("Rescheduling...");
-          }}
-        />
 
-        <PendingApptCard
-          title="Technical Interview"
-          infoItems={[
-            "Wednesday, Dec 11",
-            "2:00 PM - 3:00 PM",
-            "Interviewer: Jane Doe",
-            "Virtual - Zoom Link",
-          ]}
-          onConfirm={() => {
-            console.log("Confirming availability");
-          }}
-          onReschedule={() => {
-            console.log("Rescheduling...");
-          }}
-        />
+      <div className="mb-3 space-y-3">
+        {pending.map((interview) => (
+          <PendingApptCard
+            key={interview.id}
+            title={interview.title}
+            infoItems={[
+              interview.date,
+              interview.timeRange,
+              role === "candidate"
+                ? `Interviewer: ${interview.interviewerName}`
+                : `Candidate: ${interview.interviewerName}`,
+              interview.location,
+            ]}
+            //TODO: add real functionality for these buttons
+            onConfirm={() => console.log("Confirm")}
+            onReschedule={() => console.log("Reschedule")}
+          />
+        ))}
       </div>
 
       <div className="mt-0.5 px-20">
@@ -55,18 +69,22 @@ export function Schedule() {
       </div>
 
       <div className="mb-3 space-y-3">
-        <ConfirmedApptCard
-          title="HR Interview"
-          infoItems={[
-            "Monday, Dec 9",
-            "10:00 AM - 10:45 AM",
-            "Interviewer: John Doe",
-            "Virtual - Zoom Link",
-          ]}
-          onAddCalendar={() => {
-            console.log("Adding to calendar");
-          }}
-        />
+        {confirmed.map((interview) => (
+          <ConfirmedApptCard
+            key={interview.id}
+            title={interview.title}
+            infoItems={[
+              interview.date,
+              interview.timeRange,
+              role === "candidate"
+                ? `Interviewer: ${interview.interviewerName}`
+                : `Candidate: ${interview.interviewerName}`,
+              interview.location,
+            ]}
+            //TODO: add real functionality for this button
+            onAddCalendar={() => console.log("Add to calendar")}
+          />
+        ))}
       </div>
     </>
   );

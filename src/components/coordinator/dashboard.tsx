@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authController } from "@/utils/authController";
+import { authController } from "@/controllers/auth";
 
 const Dashboard = () => {
   const [fullName, setFullName] = useState<string | null>(null);

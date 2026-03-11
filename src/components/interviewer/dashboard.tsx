@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { authController } from "@/utils/authController";
+import { authController } from "@/controllers/auth";
 import AvailabilityX from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";

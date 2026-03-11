@@ -4,7 +4,7 @@ import { Roles } from "@/components/welcome/roles";
 import { AccessDenied } from "@/components/accessdenied";
 import { useSession } from "@/utils/useSession";
 import { useRouter } from "next/navigation";
-import { authController } from "@/utils/authController";
+import { authController } from "@/controllers/auth";
 
 const Page = () => {
   const { session, isLoading } = useSession();

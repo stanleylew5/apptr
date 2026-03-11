@@ -5,8 +5,8 @@ import { Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Cell } from "./cell";
-import { availabilityController } from "@/utils/availabilityController";
-import { authController } from "@/utils/authController";
+import { availabilityController } from "@/controllers/availability";
+import { authController } from "@/controllers/auth";
 import { Availability, DragState, TimeBlock, Half } from "./types";
 import {
   getCell,
@@ -19,6 +19,7 @@ import {
 } from "./utils";
 import Loading from "../loading";
 import { AccessDenied } from "../accessdenied";
+import { interviewController } from "@/controllers/interview";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
@@ -29,6 +30,7 @@ const AvailabilityX = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [interviewCount, setInterviewCount] = useState<number>(0);
 
   const weekDates = useMemo(() => getNext7Days(), []);
 
@@ -43,7 +45,14 @@ const AvailabilityX = () => {
 
       setUserId(currentUserId);
 
-      const startDate = getDateKey(weekDates[0]); // supabase sucks and has a storage limit so i added code to delete old availability data
+      // Fetch user's interview count
+      const interviewCount =
+        await interviewController.getInterviewCountCandidate(currentUserId);
+      setInterviewCount(interviewCount);
+      console.log("Interview count for user:", interviewCount);
+
+      // Clean up any availability outside the current week to save DB space
+      const startDate = getDateKey(weekDates[0]);
       const endDate = getDateKey(weekDates[6]);
       await availabilityController.deleteAvailabilityOutsideRange(
         startDate,
@@ -242,6 +251,9 @@ const AvailabilityX = () => {
         <h2 className="text-2xl font-bold text-blue-800">
           Edit Your Availability
         </h2>
+        <p className="text-blue-400">
+          You have {interviewCount} interview{interviewCount !== 1 ? "s" : ""}
+        </p>
         <div className="flex gap-2">
           <p>Click and drag to select your available times. Selected slots:</p>
           <p className="font-semibold text-blue-800">{selectedCount}</p>

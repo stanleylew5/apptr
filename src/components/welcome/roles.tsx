@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings, Users, CircleUser } from "lucide-react";
 import { RoleCard } from "./rolecard";
-import { authController } from "@/utils/authController";
+import { authController } from "@/controllers/auth";
 
 export function Roles() {
   const [isLoading, setIsLoading] = useState(false);

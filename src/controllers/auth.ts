@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase";
 import { createClient, SupabaseClient, Session } from "@supabase/supabase-js";
 import { User } from "@/types/types";
 
-// Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
@@ -140,7 +139,7 @@ class AuthController {
   async getUserPrimaryRole(user: User): Promise<string | null> {
     const { coordinator, interviewer, candidate } = user;
 
-    // Priority order: candidate > interviewer > coordinator
+    // Priority order: candidate > interviewer > coordinator but we allow access to all pages for now just cause we are testing..
     if (candidate) return "candidate";
     if (interviewer) return "interviewer";
     if (coordinator) return "coordinator";
