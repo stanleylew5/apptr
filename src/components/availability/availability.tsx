@@ -255,9 +255,7 @@ const AvailabilityX = () => {
           You have {interviewCount} interview{interviewCount !== 1 ? "s" : ""}
         </p>
         <div className="flex gap-2">
-          <p>
-            Click and drag to select your available times. Selected slots:
-          </p>
+          <p>Click and drag to select your available times. Selected slots:</p>
           <p className="font-semibold text-blue-800">{selectedCount}</p>
         </div>
       </div>
