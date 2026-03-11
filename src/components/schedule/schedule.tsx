@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { PendingApptCard } from "../appointments/pendingCard";
 import { ConfirmedApptCard } from "../appointments/confirmedCard";
 import { interviewController } from "@/controllers/interview";
