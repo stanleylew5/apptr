@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { authController } from "@/controllers/auth";
-import AvailabilityX from "@/components/availability/availability";
+import Availability from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
@@ -72,7 +72,7 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {view === "availability" && <AvailabilityX />}
+      {view === "availability" && <Availability />}
       {view === "schedule" && <Schedule />}
     </div>
   );

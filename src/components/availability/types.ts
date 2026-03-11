@@ -9,7 +9,7 @@ export type CellAvailability = {
   bottom: boolean;
 };
 
-export type Availability = {
+export type AvailabilityType = {
   [dateKey: string]: {
     [hour: number]: CellAvailability;
   };
