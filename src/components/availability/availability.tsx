@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Cell } from "./cell";
 import { availabilityController } from "@/controllers/availability";
 import { authController } from "@/controllers/auth";
-import { Availability, DragState, TimeBlock, Half } from "./types";
+import { AvailabilityType, DragState, TimeBlock, Half } from "./types";
 import {
   getCell,
   formatHour,
@@ -23,8 +23,8 @@ import { interviewController } from "@/controllers/interview";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
-const AvailabilityX = () => {
-  const [availability, setAvailability] = useState<Availability>({});
+const Availability = () => {
+  const [availability, setAvailability] = useState<AvailabilityType>({});
   const [dragState, setDragState] = useState<DragState>(null);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -72,7 +72,7 @@ const AvailabilityX = () => {
         await availabilityController.getUserAvailabilityForComponent();
 
       if (availabilityData.length > 0) {
-        const newAvailability: Availability = {};
+        const newAvailability: AvailabilityType = {};
 
         const validDateKeys = new Set( // make sure the dates are only from the current 7 day window
           weekDates.map((date) => getDateKey(date)),
@@ -319,4 +319,4 @@ const AvailabilityX = () => {
   );
 };
 
-export default AvailabilityX;
+export default Availability;

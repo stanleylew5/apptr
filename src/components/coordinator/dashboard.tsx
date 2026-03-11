@@ -19,7 +19,7 @@ const Dashboard = () => {
     <div className="px-20 py-10">
       <div className="mb-12 flex flex-col gap-0.5">
         <h2 className="text-3xl font-bold text-blue-800">
-          Welcome, {fullName ? `${fullName}!` : "Guest!"}
+          Welcome, {fullName ? `${fullName}!` : "User!"}
         </h2>
       </div>
 

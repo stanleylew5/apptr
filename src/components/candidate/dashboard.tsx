@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { authController } from "@/controllers/auth";
-import AvailabilityX from "@/components/availability/availability";
+import Availability from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
@@ -40,10 +40,10 @@ const Dashboard = () => {
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-0.5 px-20">
+    <div className="px-20 py-10">
+      <div className="flex flex-col gap-0.5">
         <h2 className="text-3xl font-bold text-blue-800">
-          Welcome, {fullName ? `${fullName}!` : "Guest!"}
+          Welcome, {fullName ? `${fullName}!` : "User!"}
         </h2>
         <p className="text-blue-400">You have {2} interviews</p>
       </div>
@@ -72,7 +72,7 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {view === "availability" && <AvailabilityX />}
+      {view === "availability" && <Availability />}
       {view === "schedule" && <Schedule />}
     </div>
   );

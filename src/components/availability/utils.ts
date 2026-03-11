@@ -1,9 +1,9 @@
-import { Availability, CellAvailability } from "./types";
+import { AvailabilityType, CellAvailability } from "./types";
 
 const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
 
 export function getCell(
-  availability: Availability,
+  availability: AvailabilityType,
   dateKey: string,
   hour: number,
 ): CellAvailability {

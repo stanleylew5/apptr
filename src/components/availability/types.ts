@@ -4,16 +4,16 @@ export type ViewMode = "schedule" | "availability";
 
 export type Half = "top" | "bottom";
 
-export type CellAvailability = {
+export interface CellAvailability {
   top: boolean;
   bottom: boolean;
-};
+}
 
-export type Availability = {
+export interface AvailabilityType {
   [dateKey: string]: {
     [hour: number]: CellAvailability;
   };
-};
+}
 
 export type DragState = {
   active: boolean;
@@ -21,11 +21,11 @@ export type DragState = {
   visited: Set<string>;
 } | null;
 
-export type TimeBlock = {
+export interface TimeBlock {
   date: string; // ISO date string (YYYY-MM-DD)
   startTime: string; // 24-hour format (HH:mm)
   endTime: string; // 24-hour format (HH:mm)
-};
+}
 
 export interface PageHeaderProps {
   description: string;

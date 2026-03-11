@@ -5,11 +5,13 @@ import { AccessDenied } from "@/components/accessdenied";
 import { useSession } from "@/utils/useSession";
 import { useRouter } from "next/navigation";
 import { authController } from "@/controllers/auth";
+import Loading from "@/components/loading";
 
 const Page = () => {
   const { session, isLoading } = useSession();
   const router = useRouter();
-  const [isCheckingRole, setIsCheckingRole] = useState(true);
+  const [hasNoRole, setHasNoRole] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -19,27 +21,27 @@ const Page = () => {
           if (user) {
             const primaryRole = await authController.getUserPrimaryRole(user);
             if (primaryRole) {
-              // User has a role assigned, redirect them
+              setShouldRedirect(true);
               router.push(`/${primaryRole}`);
               return;
+            } else {
+              setHasNoRole(true);
             }
           }
         } catch (error) {
           console.error("Error checking user role:", error);
+          setHasNoRole(true);
         }
+      } else if (!isLoading && !session) {
+        setHasNoRole(false);
       }
-      setIsCheckingRole(false);
     };
 
     checkUserRole();
   }, [isLoading, session, router]);
 
-  if (isLoading || isCheckingRole) {
-    return (
-      <div className="flex min-h-screen flex-col place-items-center justify-center">
-        <div className="text-2xl">Loading...</div>
-      </div>
-    );
+  if (isLoading || shouldRedirect || !hasNoRole) {
+    return <Loading />;
   }
 
   if (!session) {

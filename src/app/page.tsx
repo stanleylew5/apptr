@@ -1,11 +1,7 @@
 import SignIn from "@/components/signin";
 
 const Home = () => {
-  return (
-    <>
-      <SignIn />
-    </>
-  );
+  return <SignIn />;
 };
 
 export default Home;

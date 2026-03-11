@@ -1,4 +1,3 @@
-import React from "react";
 import { CellProps, Half } from "./types";
 
 export function Cell({
