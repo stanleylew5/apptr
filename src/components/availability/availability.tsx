@@ -49,7 +49,6 @@ const Availability = () => {
       const interviewCount =
         await interviewController.getInterviewCountCandidate(currentUserId);
       setInterviewCount(interviewCount);
-      console.log("Interview count for user:", interviewCount);
 
       // Clean up any availability outside the current week to save DB space
       const startDate = getDateKey(weekDates[0]);
@@ -252,7 +251,8 @@ const Availability = () => {
           Edit Your Availability
         </h2>
         <p className="text-blue-400">
-          You have {interviewCount} interview{interviewCount !== 1 ? "s" : ""}
+          You have {interviewCount} upcoming interview
+          {interviewCount !== 1 ? "s" : ""}
         </p>
         <div className="flex gap-2">
           <p>Click and drag to select your available times. Selected slots:</p>

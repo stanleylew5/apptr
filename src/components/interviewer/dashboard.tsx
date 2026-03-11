@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { authController } from "@/controllers/auth";
+import { interviewController } from "@/controllers/interview";
 import Availability from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("schedule");
+  const [interviewCount, setInterviewCount] = useState<number>(0);
 
   useEffect(() => {
     async function initialize() {
@@ -25,6 +27,11 @@ const Dashboard = () => {
       setUserId(currentUserId);
       const name = await authController.getFullName();
       setFullName(name);
+      
+
+      const interviewCount =
+      await interviewController.getInterviewCountInterviewer(currentUserId);
+      setInterviewCount(interviewCount);
       setLoading(false);
     }
 
@@ -45,7 +52,9 @@ const Dashboard = () => {
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "User!"}
         </h2>
-        <p className="text-blue-400">You have {2} interviews</p>
+        <p className="text-blue-400">
+          You have {interviewCount} upcoming interview{interviewCount !== 1 ? "s" : ""}
+        </p>
       </div>
 
       <div className="mx-auto flex max-w-6xl gap-5 bg-gray-100 p-1 px-4">

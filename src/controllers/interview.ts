@@ -33,6 +33,25 @@ class InterviewController {
     }
   }
 
+  async getInterviewCountInterviewer(userId: string): Promise<number> {
+    try {
+      const { count, error } = await this.supabase
+        .from("interviews")
+        .select("interview_id", { count: "exact", head: true })
+        .eq("interviewer_id", userId);
+
+      if (error) {
+        console.error("Error fetching interview count:", error.message);
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error("Unexpected error getting interview count:", error);
+      throw error;
+    }
+  }
+
   // Fetch all appts and appt info for a candidate and put into an interview array
   async getCandidateInterviews(
     userId: string,
