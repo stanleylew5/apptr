@@ -26,7 +26,7 @@ class AuthController {
 
     const { data, error } = await supabase
       .from("users")
-      .select("user_id, email, full_name")
+      .select("user_id, email, full_name, coordinator, interviewer, candidate")
       .eq("user_id", user.id)
       .single();
 
@@ -91,7 +91,9 @@ class AuthController {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("user_id, email, full_name")
+        .select(
+          "user_id, email, full_name, coordinator, interviewer, candidate",
+        )
         .eq("user_id", userId)
         .single();
 
@@ -107,24 +109,43 @@ class AuthController {
     }
   }
 
-  async getUserRole(userId: string): Promise<string | null> {
+  async setUserRole(
+    userId: string,
+    role: "coordinator" | "interviewer" | "candidate",
+  ): Promise<boolean> {
     try {
-      const { data, error } = await this.supabase
-        .from("roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+      console.log("setUserRole called with userId:", userId, "role:", role);
+      const { error } = await supabase
+        .from("users")
+        .update({
+          coordinator: role === "coordinator",
+          interviewer: role === "interviewer",
+          candidate: role === "candidate",
+        })
+        .eq("user_id", userId);
 
-      if (error || !data) {
-        console.error("Error fetching user role:", error);
-        return null;
+      if (error) {
+        console.error("Error updating user role:", error.message);
+        return false;
       }
 
-      return data.role || null;
+      console.log("User role updated successfully");
+      return true;
     } catch (error) {
-      console.error("Unexpected error getting user role:", error);
-      return null;
+      console.error("Unexpected error updating user role:", error);
+      return false;
     }
+  }
+
+  async getUserPrimaryRole(user: User): Promise<string | null> {
+    const { coordinator, interviewer, candidate } = user;
+
+    // Priority order: candidate > interviewer > coordinator
+    if (candidate) return "candidate";
+    if (interviewer) return "interviewer";
+    if (coordinator) return "coordinator";
+
+    return null;
   }
 }
 

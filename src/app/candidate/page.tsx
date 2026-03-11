@@ -1,8 +1,8 @@
 "use client";
-import { AccessDenied } from "@/components/accessdenied";
 import { useSession } from "@/utils/useSession";
-import Availability from "@/components/availability/availability";
+import Dashboard from "@/components/candidate/dashboard";
 import Loading from "@/components/loading";
+import { AccessDenied } from "@/components/accessdenied";
 
 const Page = () => {
   const { session, isLoading } = useSession();
@@ -15,7 +15,7 @@ const Page = () => {
     return <AccessDenied />;
   }
 
-  return <Availability />;
+  return <Dashboard />;
 };
 
 export default Page;

@@ -3,15 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { PendingApptCard } from "../appointments/pendingCard";
 import { ConfirmedApptCard } from "../appointments/confirmedCard";
-import { interviewController } from "@/utils/interviewController";
-import { createClient } from "@supabase/supabase-js";
+import { interviewController } from "@/controllers/interview";
 import { Interview } from "./types";
-import { authController } from "@/utils/authController";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import { authController } from "@/controllers/auth";
 
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
@@ -22,17 +16,15 @@ export function Schedule() {
 
   useEffect(() => {
     const fetchInterviews = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await authController.getCurrentUser();
       if (!user) return;
 
-      const userRole = await authController.getUserRole(user.id);
+      const userRole = await authController.getUserPrimaryRole(user);
       if (!userRole) return;
       setRole(userRole);
 
       const data = await interviewController.getCandidateInterviews(
-        user.id,
+        user.user_id,
         userRole,
       );
       setInterviews(data);
