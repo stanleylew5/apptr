@@ -27,10 +27,9 @@ const Dashboard = () => {
       setUserId(currentUserId);
       const name = await authController.getFullName();
       setFullName(name);
-      
 
       const interviewCount =
-      await interviewController.getInterviewCountInterviewer(currentUserId);
+        await interviewController.getInterviewCountInterviewer(currentUserId);
       setInterviewCount(interviewCount);
       setLoading(false);
     }
@@ -47,17 +46,18 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="px-20 py-10">
+    <div className="mt-4 mb-10 px-20">
       <div className="flex flex-col gap-0.5">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "User!"}
         </h2>
         <p className="text-blue-400">
-          You have {interviewCount} upcoming interview{interviewCount !== 1 ? "s" : ""}
+          You have {interviewCount} upcoming interview
+          {interviewCount !== 1 ? "s" : ""}
         </p>
       </div>
 
-      <div className="mx-auto flex max-w-6xl gap-5 bg-gray-100 p-1 px-4">
+      <div className="mx-auto mt-4 flex gap-5 bg-gray-100 px-4">
         <button
           onClick={() => setView("schedule")}
           className={`px-2 py-1 font-medium ${
