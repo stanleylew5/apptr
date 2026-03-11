@@ -91,7 +91,9 @@ class AuthController {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("user_id, email, full_name, coordinator, interviewer, candidate")
+        .select(
+          "user_id, email, full_name, coordinator, interviewer, candidate",
+        )
         .eq("user_id", userId)
         .single();
 
@@ -109,7 +111,7 @@ class AuthController {
 
   async setUserRole(
     userId: string,
-    role: "coordinator" | "interviewer" | "candidate"
+    role: "coordinator" | "interviewer" | "candidate",
   ): Promise<boolean> {
     try {
       console.log("setUserRole called with userId:", userId, "role:", role);

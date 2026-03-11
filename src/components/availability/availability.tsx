@@ -45,7 +45,10 @@ const AvailabilityX = () => {
 
       const startDate = getDateKey(weekDates[0]); // supabase sucks and has a storage limit so i added code to delete old availability data
       const endDate = getDateKey(weekDates[6]);
-      await availabilityController.deleteAvailabilityOutsideRange(startDate, endDate,);
+      await availabilityController.deleteAvailabilityOutsideRange(
+        startDate,
+        endDate,
+      );
 
       await loadAvailability();
       setLoading(false);
@@ -64,7 +67,7 @@ const AvailabilityX = () => {
 
         const validDateKeys = new Set( // make sure the dates are only from the current 7 day window
           weekDates.map((date) => getDateKey(date)),
-        ); 
+        );
 
         availabilityData.forEach((slot) => {
           const dateKey = slot.day; // YYYY-MM-DD format
@@ -72,7 +75,7 @@ const AvailabilityX = () => {
           const endHour = parseTimeToHour(slot.endTime); // 10:00 AM -> 10
 
           if (!validDateKeys.has(dateKey)) return;
-          
+
           if (!newAvailability[dateKey]) {
             newAvailability[dateKey] = {};
           }
@@ -240,9 +243,7 @@ const AvailabilityX = () => {
           Edit Your Availability
         </h2>
         <div className="flex gap-2">
-          <p>
-            Click and drag to select your available times. Selected slots:
-          </p>
+          <p>Click and drag to select your available times. Selected slots:</p>
           <p className="font-semibold text-blue-800">{selectedCount}</p>
         </div>
       </div>

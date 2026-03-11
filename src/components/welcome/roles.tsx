@@ -10,7 +10,7 @@ export function Roles() {
   const router = useRouter();
 
   const handleSelectRole = async (
-    role: "coordinator" | "interviewer" | "candidate"
+    role: "coordinator" | "interviewer" | "candidate",
   ) => {
     setIsLoading(true);
     console.log("Starting role selection for:", role);

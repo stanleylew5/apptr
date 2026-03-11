@@ -39,7 +39,7 @@ export function RoleCard({
         <button
           onClick={() => onSelectRole(roleType)}
           disabled={isLoading}
-          className="flex font-semibold hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
+          className="flex font-semibold transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? "Setting role..." : linkText}
           <ArrowRight className="ml-2" />
