@@ -7,7 +7,7 @@ export interface User {
   candidate?: boolean;
 }
 
-export type RawInterview = {
+export interface RawInterview {
   interview_id: string;
   scheduled_start: string;
   scheduled_end: string;
@@ -15,7 +15,7 @@ export type RawInterview = {
   interviewer_name: string | null;
   candidate_name: string | null;
   category_name: string | null;
-};
+}
 
 export interface Interview {
   id: string;

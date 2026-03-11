@@ -44,14 +44,10 @@ const Navbar = () => {
 
   return (
     <nav className="w-full border-b bg-white">
-      <div className="mx-auto flex py-2 items-center justify-between px-6">
+      <div className="mx-auto flex items-center justify-between px-6 py-2">
         <div className="flex items-center">
           <Image src={Apptr} alt="Apptr" className="mr-4" />
-          <p
-            className="text-lg font-semibold text-gray-900"
-          >
-            Apptr
-          </p>
+          <p className="text-lg font-semibold text-gray-900">Apptr</p>
         </div>
         <div>
           {session ? (
