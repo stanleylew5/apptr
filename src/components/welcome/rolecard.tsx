@@ -1,22 +1,25 @@
-import Link from "next/link";
 import { LucideIcon, ArrowRight } from "lucide-react";
 
 interface RoleCardProps {
   title: string;
   description: string;
   bullets: string[];
-  linkPath: string;
+  roleType: "coordinator" | "interviewer" | "candidate";
   linkText: string;
   icon: LucideIcon;
+  onSelectRole: (role: "coordinator" | "interviewer" | "candidate") => void;
+  isLoading?: boolean;
 }
 
 export function RoleCard({
   title,
   description,
   bullets,
-  linkPath,
+  roleType,
   linkText,
   icon: Icon,
+  onSelectRole,
+  isLoading = false,
 }: RoleCardProps) {
   return (
     <div className="flex w-85 flex-col gap-2 rounded-lg border-2 border-gray-200 p-6 shadow-xl">
@@ -33,10 +36,14 @@ export function RoleCard({
         ))}
       </ul>
       <div className="flex gap-2 text-blue-800">
-        <Link href={linkPath} className="flex font-semibold hover:scale-105">
-          {" "}
-          {linkText} <ArrowRight className="ml-2" />
-        </Link>
+        <button
+          onClick={() => onSelectRole(roleType)}
+          disabled={isLoading}
+          className="flex font-semibold hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-transform"
+        >
+          {isLoading ? "Setting role..." : linkText}
+          <ArrowRight className="ml-2" />
+        </button>
       </div>
     </div>
   );
