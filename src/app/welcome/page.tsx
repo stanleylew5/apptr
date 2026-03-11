@@ -5,6 +5,7 @@ import { AccessDenied } from "@/components/accessdenied";
 import { useSession } from "@/utils/useSession";
 import { useRouter } from "next/navigation";
 import { authController } from "@/controllers/auth";
+import Loading from "@/components/loading";
 
 const Page = () => {
   const { session, isLoading } = useSession();
@@ -41,9 +42,7 @@ const Page = () => {
 
   if (isLoading || shouldRedirect || !hasNoRole) {
     return (
-      <div className="flex min-h-screen flex-col place-items-center justify-center">
-        <div className="text-2xl">Loading...</div>
-      </div>
+      <Loading/>
     );
   }
 
