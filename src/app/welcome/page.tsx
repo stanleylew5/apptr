@@ -41,9 +41,7 @@ const Page = () => {
   }, [isLoading, session, router]);
 
   if (isLoading || shouldRedirect || !hasNoRole) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   if (!session) {
