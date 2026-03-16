@@ -6,6 +6,8 @@ import Availability from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
+import { JoinOrganization } from "@/components/interviewer/joinorganization";
+import { Organization } from "@/types/types";
 
 type ViewMode = "schedule" | "availability";
 
@@ -15,6 +17,8 @@ const Dashboard = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("schedule");
   const [interviewCount, setInterviewCount] = useState<number>(0);
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
 
   useEffect(() => {
     async function initialize() {
@@ -28,14 +32,20 @@ const Dashboard = () => {
       const name = await authController.getFullName();
       setFullName(name);
 
-      const interviewCount =
-        await interviewController.getInterviewCountInterviewer(currentUserId);
-      setInterviewCount(interviewCount);
       setLoading(false);
     }
 
     initialize();
   }, []);
+
+  const handleOrganizationSelected = async (org: Organization) => {
+    setSelectedOrganization(org);
+    if (userId) {
+      const interviewCount =
+        await interviewController.getInterviewCountInterviewer(userId);
+      setInterviewCount(interviewCount);
+    }
+  };
 
   if (loading) {
     return <Loading />;
@@ -45,8 +55,29 @@ const Dashboard = () => {
     return <AccessDenied />;
   }
 
+  if (!selectedOrganization) {
+    return (
+      <JoinOrganization onOrganizationSelected={handleOrganizationSelected} />
+    );
+  }
+
   return (
     <div className="mt-4 mb-10 px-20">
+      <div className="mb-4 flex items-center justify-between rounded-lg bg-blue-50 p-4">
+        <div>
+          <p className="text-sm text-gray-600">Current Organization</p>
+          <p className="text-lg font-semibold text-blue-900">
+            {selectedOrganization.organization_name}
+          </p>
+        </div>
+        <button
+          onClick={() => setSelectedOrganization(null)}
+          className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          Switch Organization
+        </button>
+      </div>
+
       <div className="flex flex-col gap-0.5">
         <h2 className="text-3xl font-bold text-blue-800">
           Welcome, {fullName ? `${fullName}!` : "User!"}
