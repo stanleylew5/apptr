@@ -1,5 +1,8 @@
+"use client";
+import { ViewProcesses } from "@/components/coordinator/viewprocesses";
+
 const Page = () => {
-  return <div></div>;
+  return <ViewProcesses />;
 };
 
 export default Page;

@@ -8,7 +8,7 @@ const Dashboard = () => {
   return (
     <OrganizationSelector
       onOrganizationSelected={(org) =>
-        router.push(`/coordinator/${org.organization_id}`)
+        router.push(`/coordinator/process/view?org=${org.organization_id}`)
       }
     />
   );

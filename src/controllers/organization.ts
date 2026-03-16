@@ -34,10 +34,17 @@ class OrganizationController {
   async createOrganization(
     organizationName: string,
     userId: string,
+    password: string,
   ): Promise<Organization | null> {
     const { data: orgData, error: orgError } = await this.supabase
       .from("organizations")
-      .insert([{ organization_name: organizationName, created_by: userId }])
+      .insert([
+        {
+          organization_name: organizationName,
+          created_by: userId,
+          password: password,
+        },
+      ])
       .select()
       .single();
 

@@ -4,7 +4,7 @@ import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
 import { Organization } from "@/types/types";
 
-interface CreateOrganizationFormProps {
+interface CreateOrganizationProps {
   isFirstOrganization: boolean;
   onOrganizationCreated: (org: Organization) => void;
   onCancel?: () => void;
@@ -12,18 +12,25 @@ interface CreateOrganizationFormProps {
   onError?: (error: string) => void;
 }
 
-export const CreateOrganizationForm = ({
+export const CreateOrganization = ({
   isFirstOrganization,
   onOrganizationCreated,
   onCancel,
   onError,
-}: CreateOrganizationFormProps) => {
+}: CreateOrganizationProps) => {
   const [newOrgName, setNewOrgName] = useState("");
+  const [newOrgPassword, setNewOrgPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const handleCreateOrganization = async () => {
     if (!newOrgName.trim()) {
       onError?.("Organization name is required");
+      return;
+    }
+
+    if (!newOrgPassword.trim()) {
+      onError?.("Organization password is required");
       return;
     }
 
@@ -34,9 +41,11 @@ export const CreateOrganizationForm = ({
         const newOrg = await organizationController.createOrganization(
           newOrgName.trim(),
           userId,
+          newOrgPassword.trim(),
         );
         if (newOrg) {
           setNewOrgName("");
+          setNewOrgPassword("");
           onOrganizationCreated(newOrg);
         } else {
           onError?.("Failed to create organization");
@@ -65,6 +74,27 @@ export const CreateOrganizationForm = ({
         className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
         disabled={creating}
       />
+      <div className="relative mb-4">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={newOrgPassword}
+          onChange={(e) => setNewOrgPassword(e.target.value)}
+          placeholder="Organization password"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+          disabled={creating}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
+          tabIndex={-1}
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
+      </div>
+      <p className="mb-4 text-sm text-gray-500">
+        Members will need this password to join your organization.
+      </p>
       <div className="flex gap-3">
         <button
           onClick={handleCreateOrganization}
@@ -77,6 +107,7 @@ export const CreateOrganizationForm = ({
           <button
             onClick={() => {
               setNewOrgName("");
+              setNewOrgPassword("");
               onCancel?.();
             }}
             disabled={creating}

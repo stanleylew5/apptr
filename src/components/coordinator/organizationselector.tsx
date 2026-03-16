@@ -5,7 +5,7 @@ import { authController } from "@/controllers/auth";
 import Loading from "@/components/loading";
 import { Organization } from "@/types/types";
 import { OrganizationCard } from "./organizationcard";
-import { CreateOrganizationForm } from "./createorganizationform";
+import { CreateOrganization } from "./createorganization";
 
 interface OrganizationSelectorProps {
   onOrganizationSelected: (org: Organization) => void;
@@ -102,7 +102,7 @@ export const OrganizationSelector = ({
         )}
 
         {showCreateForm && (
-          <CreateOrganizationForm
+          <CreateOrganization
             isFirstOrganization={organizations.length === 0}
             onOrganizationCreated={handleOrganizationCreated}
             onCancel={() => setShowCreateForm(false)}

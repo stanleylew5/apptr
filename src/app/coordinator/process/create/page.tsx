@@ -1,5 +1,8 @@
+"use client";
+import { CreateProcess } from "@/components/coordinator/createprocess";
+
 const Page = () => {
-  return <div></div>;
+  return <CreateProcess />;
 };
 
 export default Page;
