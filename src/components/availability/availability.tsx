@@ -19,7 +19,6 @@ import {
 } from "./utils";
 import Loading from "../loading";
 import { AccessDenied } from "../accessdenied";
-import { interviewController } from "@/controllers/interview";
 
 const times = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
@@ -30,7 +29,6 @@ const Availability = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [interviewCount, setInterviewCount] = useState<number>(0);
 
   const weekDates = useMemo(() => getNext7Days(), []);
 
@@ -44,12 +42,6 @@ const Availability = () => {
       }
 
       setUserId(currentUserId);
-
-      // Fetch user's interview count
-      const interviewCount =
-        await interviewController.getInterviewCountCandidate(currentUserId);
-      setInterviewCount(interviewCount);
-      console.log("Interview count for user:", interviewCount);
 
       // Clean up any availability outside the current week to save DB space
       const startDate = getDateKey(weekDates[0]);
@@ -207,8 +199,6 @@ const Availability = () => {
         };
       });
 
-      console.log("Saving formatted blocks:", formattedBlocks);
-
       const success =
         await availabilityController.saveAvailability(formattedBlocks);
 
@@ -247,14 +237,11 @@ const Availability = () => {
 
   return (
     <div>
-      <div className="flex flex-col px-20">
-        <h2 className="text-2xl font-bold text-blue-800">
+      <div className="flex flex-col">
+        <h2 className="mt-4 text-2xl font-bold text-blue-800">
           Edit Your Availability
         </h2>
-        <p className="text-blue-400">
-          You have {interviewCount} interview{interviewCount !== 1 ? "s" : ""}
-        </p>
-        <div className="flex gap-2">
+        <div className="mb-4 flex gap-2">
           <p>Click and drag to select your available times. Selected slots:</p>
           <p className="font-semibold text-blue-800">{selectedCount}</p>
         </div>
@@ -302,14 +289,14 @@ const Availability = () => {
       <div className="mx-auto mt-4 mb-4 flex max-w-6xl items-center justify-end gap-3 font-medium">
         <button
           onClick={clearAll}
-          className="rounded-lg border border-gray-300 px-2"
+          className="rounded-lg border border-gray-300 px-2 hover:cursor-pointer hover:opacity-75"
         >
           Clear All
         </button>
         <button
           onClick={saveAvailability}
           disabled={saving}
-          className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-blue-800 px-2 text-white hover:cursor-pointer hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : "Save Availability"}

@@ -113,7 +113,6 @@ class AuthController {
     role: "coordinator" | "interviewer" | "candidate",
   ): Promise<boolean> {
     try {
-      console.log("setUserRole called with userId:", userId, "role:", role);
       const { error } = await supabase
         .from("users")
         .update({
@@ -127,8 +126,6 @@ class AuthController {
         console.error("Error updating user role:", error.message);
         return false;
       }
-
-      console.log("User role updated successfully");
       return true;
     } catch (error) {
       console.error("Unexpected error updating user role:", error);

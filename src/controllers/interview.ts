@@ -11,7 +11,7 @@ class InterviewController {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
-  //Fetch number of interviews for a candidate
+  // Fetch number of interviews for a candidate
   async getInterviewCountCandidate(userId: string): Promise<number> {
     try {
       const { count, error } = await this.supabase
@@ -29,6 +29,25 @@ class InterviewController {
     } catch (error) {
       console.error("Unexpected error getting interview count:", error);
       // return 0;
+      throw error;
+    }
+  }
+
+  async getInterviewCountInterviewer(userId: string): Promise<number> {
+    try {
+      const { count, error } = await this.supabase
+        .from("interviews")
+        .select("interview_id", { count: "exact", head: true })
+        .eq("interviewer_id", userId);
+
+      if (error) {
+        console.error("Error fetching interview count:", error.message);
+        throw error;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error("Unexpected error getting interview count:", error);
       throw error;
     }
   }
@@ -57,7 +76,10 @@ class InterviewController {
 
     return {
       id: item.interview_id,
-      title: item.category_name ?? "Unknown",
+      title:
+        (item.interviewer_name ?? "Unknown") +
+        " & " +
+        (item.candidate_name ?? "Unknown"),
       date: start.toLocaleDateString(),
       timeRange: `${start.toLocaleTimeString([], {
         hour: "2-digit",
@@ -70,8 +92,11 @@ class InterviewController {
         role === "candidate"
           ? (item.interviewer_name ?? "Unknown")
           : (item.candidate_name ?? "Unknown"),
+      candidateName: item.candidate_name ?? "Unknown",
       location: "Virtual - Zoom Link",
       status: item.status,
+      interviewer_confirmation: item.interviewer_confirmation ?? false,
+      candidate_confirmation: item.candidate_confirmation ?? false,
     };
   }
 }

@@ -13,22 +13,16 @@ export function Roles() {
     role: "coordinator" | "interviewer" | "candidate",
   ) => {
     setIsLoading(true);
-    console.log("Starting role selection for:", role);
     try {
       const userId = await authController.getCurrentUserId();
-      console.log("Got userId:", userId);
       if (!userId) {
         console.error("No user ID found");
         setIsLoading(false);
         return;
       }
-
-      console.log("Calling setUserRole for userId:", userId, "role:", role);
       const success = await authController.setUserRole(userId, role);
-      console.log("setUserRole result:", success);
       if (success) {
         // Redirect to their role page
-        console.log("Redirecting to:", `/${role}`);
         router.push(`/${role}`);
       } else {
         console.error("Failed to set user role");
