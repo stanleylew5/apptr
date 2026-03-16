@@ -4,7 +4,7 @@ import { OrganizationSelector } from "./organizationselector";
 
 const Dashboard = () => {
   const router = useRouter();
-  
+
   return (
     <OrganizationSelector
       onOrganizationSelected={(org) =>

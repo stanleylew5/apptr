@@ -24,7 +24,8 @@ export const OrganizationSelector = ({
       try {
         const userId = await authController.getCurrentUserId();
         if (userId) {
-          const orgs = await organizationController.getUserOrganizations(userId);
+          const orgs =
+            await organizationController.getUserOrganizations(userId);
           setOrganizations(orgs);
 
           if (orgs.length === 0) setShowCreateForm(true);
