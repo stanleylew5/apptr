@@ -15,6 +15,7 @@ export const JoinOrganization = ({
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [organizationName, setOrganizationName] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,8 +49,8 @@ export const JoinOrganization = ({
     setSubmitting(true);
 
     try {
-      if (!organizationName.trim() || !password.trim()) {
-        setError("Please enter both organization name and password");
+      if (!organizationName.trim() || !password.trim() || !role.trim()) {
+        setError("Please enter organization name, password, and role");
         setSubmitting(false);
         return;
       }
@@ -65,11 +66,13 @@ export const JoinOrganization = ({
         organizationName,
         password,
         userId,
+        role,
       );
 
       if (org) {
         setOrganizationName("");
         setPassword("");
+        setRole("");
         if (
           !organizations.find((o) => o.organization_id === org.organization_id)
         ) {
@@ -162,6 +165,20 @@ export const JoinOrganization = ({
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-2 w-full rounded-lg border-2 border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
                 placeholder="Enter organization password"
+                disabled={submitting}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">
+                Role
+              </label>
+              <input
+                type="text"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="mt-2 w-full rounded-lg border-2 border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+                placeholder="Enter your role (e.g., Senior Interviewer)"
                 disabled={submitting}
               />
             </div>

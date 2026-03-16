@@ -122,6 +122,7 @@ class OrganizationController {
     organizationName: string,
     password: string,
     userId: string,
+    role: string,
   ): Promise<Organization | null> {
     const { data: org, error: fetchError } = await this.supabase
       .from("organizations")
@@ -170,6 +171,7 @@ class OrganizationController {
         {
           user_id: userId,
           organization_id: org.organization_id,
+          role: role,
         },
       ]);
 
