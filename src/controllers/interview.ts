@@ -11,7 +11,7 @@ class InterviewController {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
-  //Fetch number of interviews for a candidate
+  // Fetch number of interviews for a candidate
   async getInterviewCountCandidate(userId: string): Promise<number> {
     try {
       const { count, error } = await this.supabase

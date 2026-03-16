@@ -199,8 +199,6 @@ const Availability = () => {
         };
       });
 
-      console.log("Saving formatted blocks:", formattedBlocks);
-
       const success =
         await availabilityController.saveAvailability(formattedBlocks);
 
