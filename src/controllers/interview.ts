@@ -76,7 +76,10 @@ class InterviewController {
 
     return {
       id: item.interview_id,
-      title: item.category_name ?? "Unknown",
+      title:
+        (item.interviewer_name ?? "Unknown") +
+        " & " +
+        (item.candidate_name ?? "Unknown"),
       date: start.toLocaleDateString(),
       timeRange: `${start.toLocaleTimeString([], {
         hour: "2-digit",
@@ -89,8 +92,11 @@ class InterviewController {
         role === "candidate"
           ? (item.interviewer_name ?? "Unknown")
           : (item.candidate_name ?? "Unknown"),
+      candidateName: item.candidate_name ?? "Unknown",
       location: "Virtual - Zoom Link",
       status: item.status,
+      interviewer_confirmation: item.interviewer_confirmation ?? false,
+      candidate_confirmation: item.candidate_confirmation ?? false,
     };
   }
 }

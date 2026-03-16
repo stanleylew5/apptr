@@ -10,9 +10,14 @@ import { authController } from "@/controllers/auth";
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [role, setRole] = useState<string>("");
-  //TODO: add confirmed/pending enum types for interview_status in supabase, then change lines below
-  const pending = interviews.filter((i) => i.status === "completed");
-  const confirmed = interviews.filter((i) => i.status === "cancelled");
+
+  // Filter interviews based on confirmation status from both parties
+  const pending = interviews.filter(
+    (i) => !(i.interviewer_confirmation && i.candidate_confirmation),
+  );
+  const confirmed = interviews.filter(
+    (i) => i.interviewer_confirmation && i.candidate_confirmation,
+  );
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -35,7 +40,7 @@ export function Schedule() {
 
   return (
     <>
-      <div className="px-20">
+      <div className="my-4">
         <h2 className="text-2xl font-bold text-blue-800">
           Pending Confirmation
         </h2>
@@ -43,26 +48,36 @@ export function Schedule() {
       </div>
 
       <div className="mb-3 space-y-3">
-        {pending.map((interview) => (
-          <PendingApptCard
-            key={interview.id}
-            title={interview.title}
-            infoItems={[
-              interview.date,
-              interview.timeRange,
-              role === "candidate"
-                ? `Interviewer: ${interview.interviewerName}`
-                : `Candidate: ${interview.interviewerName}`,
-              interview.location,
-            ]}
-            //TODO: add real functionality for these buttons
-            onConfirm={() => console.log("Confirm")}
-            onReschedule={() => console.log("Reschedule")}
-          />
-        ))}
+        {pending.map(
+          ({
+            id,
+            title,
+            date,
+            timeRange,
+            interviewerName,
+            candidateName,
+            location,
+          }) => (
+            <PendingApptCard
+              key={id}
+              title={title}
+              infoItems={[
+                date,
+                timeRange,
+                role === "candidate"
+                  ? `Interviewer: ${interviewerName}`
+                  : `Candidate: ${candidateName}`,
+                location,
+              ]}
+              //TODO: add real functionality for these buttons
+              onConfirm={() => console.log("Confirm")}
+              onReschedule={() => console.log("Reschedule")}
+            />
+          ),
+        )}
       </div>
 
-      <div className="mt-0.5 px-20">
+      <div className="mt-6 mb-4">
         <h2 className="text-2xl font-bold text-blue-800">
           Confirmed Interviews
         </h2>
@@ -78,7 +93,7 @@ export function Schedule() {
               interview.timeRange,
               role === "candidate"
                 ? `Interviewer: ${interview.interviewerName}`
-                : `Candidate: ${interview.interviewerName}`,
+                : `Candidate: ${interview.candidateName}`,
               interview.location,
             ]}
             //TODO: add real functionality for this button
