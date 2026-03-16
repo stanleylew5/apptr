@@ -21,14 +21,12 @@ class InterviewController {
 
       if (error) {
         console.error("Error fetching interview count:", error.message);
-        // return 0;
         throw error;
       }
 
       return count || 0;
     } catch (error) {
       console.error("Unexpected error getting interview count:", error);
-      // return 0;
       throw error;
     }
   }
