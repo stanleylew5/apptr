@@ -73,7 +73,7 @@ class OrganizationController {
   async getOrganization(organizationId: string): Promise<Organization | null> {
     const { data, error } = await this.supabase
       .from("organizations")
-      .select("organization_id, organization_name, created_by")
+      .select("organization_id, organization_name, created_by, password")
       .eq("organization_id", organizationId)
       .single();
 
@@ -116,6 +116,71 @@ class OrganizationController {
     }
 
     return true;
+  }
+
+  async verifyAndJoinOrganization(
+    organizationName: string,
+    password: string,
+    userId: string,
+    role: string,
+  ): Promise<Organization | null> {
+    const { data: org, error: fetchError } = await this.supabase
+      .from("organizations")
+      .select("organization_id, organization_name, created_by, password")
+      .eq("organization_name", organizationName)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("Error fetching organization:", fetchError);
+      return null;
+    }
+
+    if (!org) {
+      console.error("Organization not found with name:", organizationName);
+      return null;
+    }
+
+    if (org.password !== password) {
+      console.error(
+        "Password mismatch. Expected:",
+        password,
+        "Got:",
+        org.password,
+      );
+      return null;
+    }
+
+    const { data: existingMember } = await this.supabase
+      .from("organization_members")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("organization_id", org.organization_id)
+      .maybeSingle();
+
+    if (existingMember) {
+      return {
+        organization_id: org.organization_id,
+        organization_name: org.organization_name,
+        created_by: org.created_by,
+      };
+    }
+
+    const { error: memberError } = await this.supabase
+      .from("organization_members")
+      .insert([
+        {
+          user_id: userId,
+          organization_id: org.organization_id,
+          role: role,
+        },
+      ]);
+
+    if (memberError) {
+      console.error("Error adding user to organization:", memberError);
+      return null;
+    }
+
+    return org;
   }
 }
 
