@@ -1,7 +1,39 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Settings, Users, CircleUser } from "lucide-react";
 import { RoleCard } from "./rolecard";
+import { authController } from "@/controllers/auth";
 
 export function Roles() {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSelectRole = async (
+    role: "coordinator" | "interviewer" | "candidate",
+  ) => {
+    setIsLoading(true);
+    try {
+      const userId = await authController.getCurrentUserId();
+      if (!userId) {
+        console.error("No user ID found");
+        setIsLoading(false);
+        return;
+      }
+      const success = await authController.setUserRole(userId, role);
+      if (success) {
+        // Redirect to their role page
+        router.push(`/${role}`);
+      } else {
+        console.error("Failed to set user role");
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error selecting role:", error);
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col place-items-center justify-center gap-4">
       <div className="text-5xl font-bold text-blue-800">Welcome to Apptr</div>
@@ -17,9 +49,11 @@ export function Roles() {
             "Assign interviewers to roles",
             "Manage candidates",
           ]}
-          linkPath="/coordinator"
+          roleType="coordinator"
           linkText="Continue as Coordinator"
           icon={Settings}
+          onSelectRole={handleSelectRole}
+          isLoading={isLoading}
         />
         <RoleCard
           title="Interviewer"
@@ -29,9 +63,11 @@ export function Roles() {
             "View assigned interviews",
             "Manage your schedule",
           ]}
-          linkPath="/interviewer"
+          roleType="interviewer"
           linkText="Continue as Interviewer"
           icon={Users}
+          onSelectRole={handleSelectRole}
+          isLoading={isLoading}
         />
         <RoleCard
           title="Candidate"
@@ -41,9 +77,11 @@ export function Roles() {
             "Accept/decline invitations",
             "View your interview schedule",
           ]}
-          linkPath="/candidate"
+          roleType="candidate"
           linkText="Continue as Candidate"
           icon={CircleUser}
+          onSelectRole={handleSelectRole}
+          isLoading={isLoading}
         />
       </div>
     </div>

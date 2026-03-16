@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase";
 import { createClient, SupabaseClient, Session } from "@supabase/supabase-js";
 import { User } from "@/types/types";
 
-// Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
@@ -26,7 +25,7 @@ class AuthController {
 
     const { data, error } = await supabase
       .from("users")
-      .select("user_id, email, full_name")
+      .select("user_id, email, full_name, coordinator, interviewer, candidate")
       .eq("user_id", user.id)
       .single();
 
@@ -91,7 +90,9 @@ class AuthController {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("user_id, email, full_name")
+        .select(
+          "user_id, email, full_name, coordinator, interviewer, candidate",
+        )
         .eq("user_id", userId)
         .single();
 
@@ -105,6 +106,42 @@ class AuthController {
       console.error("Unexpected error getting user by ID:", error);
       return null;
     }
+  }
+
+  async setUserRole(
+    userId: string,
+    role: "coordinator" | "interviewer" | "candidate",
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({
+          coordinator: role === "coordinator",
+          interviewer: role === "interviewer",
+          candidate: role === "candidate",
+        })
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error updating user role:", error.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Unexpected error updating user role:", error);
+      return false;
+    }
+  }
+
+  async getUserPrimaryRole(user: User): Promise<string | null> {
+    const { coordinator, interviewer, candidate } = user;
+
+    // Priority order: candidate > interviewer > coordinator but we allow access to all pages for now just cause we are testing..
+    if (candidate) return "candidate";
+    if (interviewer) return "interviewer";
+    if (coordinator) return "coordinator";
+
+    return null;
   }
 }
 

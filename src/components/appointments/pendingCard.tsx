@@ -35,7 +35,7 @@ export function PendingApptCard({
   onReschedule,
 }: PendingApptCardProps) {
   return (
-    <div className="mx-auto flex max-w-6xl items-center justify-between gap-5 rounded-md border border-orange-300 p-2">
+    <div className="mx-auto flex items-center justify-between gap-5 rounded-md border border-orange-300 p-2">
       <div className="flex flex-col">
         <div className="flex gap-3">
           <div className="gap-2 rounded-lg bg-orange-100 px-2 text-orange-600">

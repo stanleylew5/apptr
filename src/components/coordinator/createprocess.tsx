@@ -16,7 +16,7 @@ interface Candidate {
   interviewRequirements: InterviewRequirement[];
 }
 
-const InterviewProcessSetup: React.FC = () => {
+const CreateProcess: React.FC = () => {
   const router = useRouter();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [newCandidateName, setNewCandidateName] = useState("");
@@ -47,83 +47,95 @@ const InterviewProcessSetup: React.FC = () => {
   const updateRequirement = (
     candidateIndex: number,
     type: string,
-    value: number | string
+    value: number | string,
   ) => {
     setCandidates((prev) =>
       prev.map((cand, i) => {
         if (i === candidateIndex) {
           const reqs = cand.interviewRequirements.map((r) =>
-            r.type === type ? { ...r, count: value } : r
+            r.type === type ? { ...r, count: value } : r,
           );
           return { ...cand, interviewRequirements: reqs };
         }
         return cand;
-      })
+      }),
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
-      <div className="mx-auto p-6 w-full max-w-6xl">
-        <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">Set Up Interview Process</h1>
-        <p className="text-center text-gray-500 mb-8">Step 3: Add candidates and specify interview requirements</p>
+      <div className="mx-auto w-full max-w-6xl p-6">
+        <h1 className="mb-6 text-center text-3xl font-bold text-blue-800">
+          Set Up Interview Process
+        </h1>
+        <p className="mb-8 text-center text-gray-500">
+          Step 3: Add candidates and specify interview requirements
+        </p>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center gap-8 mb-8">
+        <div className="mb-8 flex items-center justify-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-white font-semibold text-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-semibold text-white">
               1
             </div>
             <span className="text-sm text-gray-600">Interview Types</span>
           </div>
           <div className="h-1 w-16 bg-gray-300"></div>
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-white font-semibold text-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-semibold text-white">
               2
             </div>
             <span className="text-sm text-gray-600">Interviewers</span>
           </div>
           <div className="h-1 w-16 bg-gray-300"></div>
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
               3
             </div>
-            <span className="text-sm text-blue-600 font-semibold">Candidates</span>
+            <span className="text-sm font-semibold text-blue-600">
+              Candidates
+            </span>
           </div>
         </div>
 
         {/* Section Header */}
-        <div className="flex items-center gap-2 mb-6">
-          <svg className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+        <div className="mb-6 flex items-center gap-2">
+          <svg
+            className="h-6 w-6 text-blue-600"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
             <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
           </svg>
-          <h2 className="text-lg font-semibold text-blue-600">Candidates & Interview Requirements</h2>
+          <h2 className="text-lg font-semibold text-blue-600">
+            Candidates & Interview Requirements
+          </h2>
         </div>
 
         <div className="space-y-6">
           {/* Add Candidate Section */}
-          <div className="w-full border border-gray-200 rounded-lg p-4 bg-white">
-            <h3 className="font-semibold text-gray-900 mb-3">Add Candidate</h3>
+          <div className="w-full rounded-lg border border-gray-200 bg-white p-4">
+            <h3 className="mb-3 font-semibold text-gray-900">Add Candidate</h3>
             <div className="flex gap-3">
               <input
                 type="text"
                 value={newCandidateName}
                 onChange={(e) => setNewCandidateName(e.target.value)}
                 placeholder="Name"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <input
                 type="email"
                 value={newCandidateEmail}
                 onChange={(e) => setNewCandidateEmail(e.target.value)}
                 placeholder="Email"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={addCandidate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 + Add
               </button>
@@ -135,18 +147,22 @@ const InterviewProcessSetup: React.FC = () => {
             {candidates.map((candidate, index) => (
               <div
                 key={index}
-                className="w-full border border-gray-200 rounded-lg p-4 bg-white"
+                className="w-full rounded-lg border border-gray-200 bg-white p-4"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {candidate.name}
+                    </h3>
                     <p className="text-sm text-gray-600">{candidate.email}</p>
-                    <div className="text-sm text-gray-600 mt-2">Interview Requirements:</div>
-                    <div className="flex mt-1">
+                    <div className="mt-2 text-sm text-gray-600">
+                      Interview Requirements:
+                    </div>
+                    <div className="mt-1 flex">
                       {/* HR half */}
-                      <div className="w-1/2 flex items-center">
-                        <div className="flex-1 flex items-center gap-1">
-                          <span className="text-sm font-semibold text-purple-800 bg-purple-200 px-2 py-1 rounded-md">
+                      <div className="flex w-1/2 items-center">
+                        <div className="flex flex-1 items-center gap-1">
+                          <span className="rounded-md bg-purple-200 px-2 py-1 text-sm font-semibold text-purple-800">
                             HR
                           </span>
                           <input
@@ -154,7 +170,7 @@ const InterviewProcessSetup: React.FC = () => {
                             min="0"
                             value={
                               candidate.interviewRequirements.find(
-                                (r) => r.type === "HR"
+                                (r) => r.type === "HR",
                               )?.count ?? ""
                             }
                             onChange={(e) =>
@@ -163,18 +179,20 @@ const InterviewProcessSetup: React.FC = () => {
                                 "HR",
                                 e.target.value === ""
                                   ? ""
-                                  : parseInt(e.target.value, 10) || ""
+                                  : parseInt(e.target.value, 10) || "",
                               )
                             }
-                            className="w-16 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-16 rounded-md border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                           />
-                          <span className="text-sm text-gray-600">interviews</span>
+                          <span className="text-sm text-gray-600">
+                            interviews
+                          </span>
                         </div>
                       </div>
                       {/* Technical half */}
-                      <div className="w-1/2 flex items-center">
-                        <div className="flex-1 flex items-center gap-1">
-                          <span className="text-sm font-semibold text-blue-800 bg-blue-200 px-2 py-1 rounded-md">
+                      <div className="flex w-1/2 items-center">
+                        <div className="flex flex-1 items-center gap-1">
+                          <span className="rounded-md bg-blue-200 px-2 py-1 text-sm font-semibold text-blue-800">
                             Technical
                           </span>
                           <input
@@ -182,7 +200,7 @@ const InterviewProcessSetup: React.FC = () => {
                             min="0"
                             value={
                               candidate.interviewRequirements.find(
-                                (r) => r.type === "Technical"
+                                (r) => r.type === "Technical",
                               )?.count ?? ""
                             }
                             onChange={(e) =>
@@ -191,12 +209,14 @@ const InterviewProcessSetup: React.FC = () => {
                                 "Technical",
                                 e.target.value === ""
                                   ? ""
-                                  : parseInt(e.target.value, 10) || ""
+                                  : parseInt(e.target.value, 10) || "",
                               )
                             }
-                            className="w-16 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-16 rounded-md border border-gray-300 px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                           />
-                          <span className="text-sm text-gray-600">interviews</span>
+                          <span className="text-sm text-gray-600">
+                            interviews
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -215,17 +235,17 @@ const InterviewProcessSetup: React.FC = () => {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6 max-w-md mx-auto">
+        <div className="mx-auto mt-6 flex max-w-md justify-between">
           <button
-            onClick={() => router.push('/')}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center gap-2"
+            onClick={() => router.push("/coordinator/")}
+            className="flex items-center gap-2 rounded-md bg-gray-600 px-6 py-2 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:outline-none"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
           <button
-            onClick={() => router.push('/')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             Complete Setup
             <ArrowRight className="h-4 w-4" />
@@ -236,4 +256,4 @@ const InterviewProcessSetup: React.FC = () => {
   );
 };
 
-export default InterviewProcessSetup;
+export default CreateProcess;
