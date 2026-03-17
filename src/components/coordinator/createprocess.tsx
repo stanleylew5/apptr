@@ -173,6 +173,22 @@ const CreateProcess: React.FC = () => {
       setError("Please add at least one interview category before proceeding");
       return;
     }
+    if (currentStep === 2) {
+      const categoriesWithoutInterviewers = interviewTypes.filter((type) => {
+        return !interviewerAssignments.some(
+          (a) => a.interviewType === type.name,
+        );
+      });
+      if (categoriesWithoutInterviewers.length > 0) {
+        const missingCategories = categoriesWithoutInterviewers
+          .map((t) => t.name)
+          .join(", ");
+        setError(
+          `Please assign at least one interviewer to each category. Missing: ${missingCategories}`,
+        );
+        return;
+      }
+    }
     if (currentStep < 3) setCurrentStep(currentStep + 1);
   };
 
