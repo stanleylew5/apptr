@@ -93,6 +93,7 @@ class InterviewController {
       candidateName: item.candidate_name ?? "Unknown",
       location: "Virtual - Zoom Link",
       status: item.status,
+      full_name: item.interviewer_name ?? "Unknown",
       interviewer_confirmation: item.interviewer_confirmation ?? false,
       candidate_confirmation: item.candidate_confirmation ?? false,
     };

@@ -36,10 +36,6 @@ export const ProcessRoundsList = ({ rounds }: ProcessRoundsListProps) => {
                   <span className="font-semibold">Duration:</span>{" "}
                   {round.category?.minutes || "Unknown"} minutes
                 </p>
-                <p className="text-gray-700">
-                  <span className="font-semibold">Required Count:</span>{" "}
-                  {round.required_count}
-                </p>
                 {/* <p className="text-sm text-gray-500"> 
                   Round ID: {round.process_round_id}
                 </p> */}

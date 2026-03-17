@@ -118,6 +118,31 @@ class OrganizationController {
     return true;
   }
 
+  async getOrganizationMembers(organizationId: string): Promise<
+    Array<{
+      user_id: string;
+      full_name: string;
+      role?: string;
+    }>
+  > {
+    const { data, error } = await this.supabase
+      .from("organization_members")
+      .select("user_id, users(full_name), role")
+      .eq("organization_id", organizationId);
+
+    if (error) {
+      console.error("Error fetching organization members:", error);
+      return [];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data ?? []).map((member: any) => ({
+      user_id: member.user_id,
+      full_name: member.users?.full_name || "Unknown",
+      role: member.role || undefined,
+    }));
+  }
+
   async verifyAndJoinOrganization(
     organizationName: string,
     password: string,

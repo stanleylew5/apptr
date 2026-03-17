@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CreateProcess } from "@/components/coordinator/createprocess";
+import CreateProcess from "@/components/coordinator/createprocess";
 import Loading from "@/components/loading";
 const Page = () => {
   return (
