@@ -2,6 +2,14 @@ import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Organization, OrganizationMemberRow } from "@/types/types";
 
+interface OrganizationMemberData {
+  user_id: string;
+  users: {
+    full_name: string;
+  } | null;
+  role: string | null;
+}
+
 class OrganizationController {
   private supabase: SupabaseClient;
 
@@ -135,7 +143,8 @@ class OrganizationController {
       return [];
     }
 
-    return (data ?? []).map((member) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data ?? []).map((member: any) => ({
       user_id: member.user_id,
       full_name: member.users?.full_name || "Unknown",
       role: member.role || undefined,
