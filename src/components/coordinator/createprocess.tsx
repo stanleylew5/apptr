@@ -46,6 +46,7 @@ const CreateProcess: React.FC = () => {
   const [interviewTypes, setInterviewTypes] = useState<InterviewType[]>([]);
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeDuration, setNewTypeDuration] = useState("");
+  const [processName, setProcessName] = useState("");
 
   // Step 2: Interviewer Assignments
   const [interviewers, setInterviewers] = useState<OrgInterviewer[]>([]);
@@ -197,14 +198,16 @@ const CreateProcess: React.FC = () => {
 
       const organizationName = orgData?.organization_name || "Process";
 
-      // Generate process name
-      const processName = `Interview Process - ${new Date().toLocaleDateString()}`;
+      // Use user-defined process name or generate default
+      const finalProcessName =
+        processName.trim() ||
+        `Interview Process - ${new Date().toLocaleDateString()}`;
 
       // Create interview process
       const processId = await interviewProcessController.createInterviewProcess(
         orgId,
         organizationName,
-        processName,
+        finalProcessName,
       );
 
       if (!processId) {
@@ -335,6 +338,23 @@ const CreateProcess: React.FC = () => {
               <h2 className="text-2xl font-bold text-blue-800">
                 {getStepTitle()}
               </h2>
+
+              {/* Process Name Input */}
+              <div className="rounded-lg bg-white p-6 shadow">
+                <h3 className="mb-4 font-semibold text-gray-900">
+                  Process Name
+                </h3>
+                <input
+                  type="text"
+                  value={processName}
+                  onChange={(e) => setProcessName(e.target.value)}
+                  placeholder="e.g., SWE Intern Summer 2026 - Stanley"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  If left empty, a default name will be generated
+                </p>
+              </div>
 
               {/* Existing Interview Types */}
               <div className="space-y-3">
