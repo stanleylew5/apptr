@@ -29,6 +29,7 @@ export interface Interview {
   candidateName: string;
   location: string;
   status: string;
+  full_name: string;
   interviewer_confirmation: boolean;
   candidate_confirmation: boolean;
   process_round_id?: string;
