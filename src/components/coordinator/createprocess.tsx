@@ -5,7 +5,6 @@ import { Trash2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { organizationController } from "@/controllers/organization";
 import { interviewProcessController } from "@/controllers/interviewprocess";
-import { supabase } from "@/lib/supabase";
 
 interface InterviewType {
   name: string;
@@ -42,13 +41,13 @@ const CreateProcess: React.FC = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Step 1: Interview Types
+  // Interview Types
   const [interviewTypes, setInterviewTypes] = useState<InterviewType[]>([]);
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeDuration, setNewTypeDuration] = useState("");
   const [processName, setProcessName] = useState("");
 
-  // Step 2: Interviewer Assignments
+  // Interviewer Assignments
   const [interviewers, setInterviewers] = useState<OrgInterviewer[]>([]);
   const [interviewerAssignments, setInterviewerAssignments] = useState<
     InterviewerAssignment[]
@@ -57,12 +56,12 @@ const CreateProcess: React.FC = () => {
   const [selectedTypeForInterviewer, setSelectedTypeForInterviewer] =
     useState("");
 
-  // Step 3: Candidates
+  // Candidates
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [newCandidateName, setNewCandidateName] = useState("");
   const [newCandidateEmail, setNewCandidateEmail] = useState("");
 
-  // Fetch interviewers from organization on mount
+  // Fetch interviewers from org
   useEffect(() => {
     const fetchInterviewers = async () => {
       if (orgId) {
@@ -79,7 +78,6 @@ const CreateProcess: React.FC = () => {
     fetchInterviewers();
   }, [orgId]);
 
-  // Step 1 Functions
   const addInterviewType = () => {
     if (
       newTypeName.trim() &&
@@ -102,7 +100,6 @@ const CreateProcess: React.FC = () => {
     setInterviewTypes(interviewTypes.filter((_, i) => i !== index));
   };
 
-  // Step 2 Functions
   const addInterviewerAssignment = () => {
     if (selectedInterviewerId && selectedTypeForInterviewer) {
       const selectedInterviewer = interviewers.find(
@@ -129,7 +126,6 @@ const CreateProcess: React.FC = () => {
     );
   };
 
-  // Step 3 Functions
   const addCandidate = () => {
     if (newCandidateName.trim() && newCandidateEmail.trim()) {
       setCandidates([
@@ -171,15 +167,11 @@ const CreateProcess: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
+    if (currentStep < 3) setCurrentStep(currentStep + 1);
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleComplete = async () => {
@@ -189,15 +181,6 @@ const CreateProcess: React.FC = () => {
     }
 
     try {
-      // Get organization details
-      const { data: orgData } = await supabase
-        .from("organizations")
-        .select("organization_name")
-        .eq("organization_id", orgId)
-        .single();
-
-      const organizationName = orgData?.organization_name || "Process";
-
       // Use user-defined process name or generate default
       const finalProcessName =
         processName.trim() ||
@@ -206,7 +189,6 @@ const CreateProcess: React.FC = () => {
       // Create interview process
       const processId = await interviewProcessController.createInterviewProcess(
         orgId,
-        organizationName,
         finalProcessName,
       );
 
@@ -384,7 +366,7 @@ const CreateProcess: React.FC = () => {
               {/* Add Interview Type Form */}
               <div className="rounded-lg bg-white p-6 shadow">
                 <h3 className="mb-4 font-semibold text-gray-900">
-                  Add Interview Type
+                  Add Interview Category
                 </h3>
                 <div className="flex gap-3">
                   <input
@@ -394,14 +376,15 @@ const CreateProcess: React.FC = () => {
                     placeholder="Type name (e.g., Technical, HR)"
                     className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
-                  <input
-                    type="number"
+                  <select
                     value={newTypeDuration}
                     onChange={(e) => setNewTypeDuration(e.target.value)}
-                    placeholder="30"
-                    min="1"
-                    className="w-24 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
+                    className="rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="">Duration</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">60 minutes</option>
+                  </select>
                   <button
                     onClick={addInterviewType}
                     className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
@@ -419,7 +402,6 @@ const CreateProcess: React.FC = () => {
                 {getStepTitle()}
               </h2>
 
-              {/* Existing Assignments Grouped by Category */}
               <div className="space-y-4">
                 {interviewTypes.map((type) => {
                   const assignmentsForType = interviewerAssignments.filter(
@@ -467,7 +449,6 @@ const CreateProcess: React.FC = () => {
                 })}
               </div>
 
-              {/* Add Interviewer Assignment Form */}
               <div className="rounded-lg bg-white p-6 shadow">
                 <h3 className="mb-4 font-semibold text-gray-900">
                   Assign Interviewer

@@ -138,9 +138,7 @@ class AvailabilityController {
     // Parse time string (e.g., "9:00 AM")
     const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
 
-    if (!timeMatch) {
-      throw new Error(`Invalid time format: ${timeStr}`);
-    }
+    if (!timeMatch) throw new Error(`Invalid time format: ${timeStr}`);
 
     let hours = parseInt(timeMatch[1]);
     const minutes = parseInt(timeMatch[2]);

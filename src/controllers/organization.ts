@@ -85,6 +85,21 @@ class OrganizationController {
     return data;
   }
 
+  async getOrganizationName(organizationId: string): Promise<string> {
+    const { data, error } = await this.supabase
+      .from("organizations")
+      .select("organization_name")
+      .eq("organization_id", organizationId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching organization name:", error);
+      return "Process";
+    }
+
+    return data?.organization_name || "Process";
+  }
+
   async deleteOrganization(
     organizationId: string,
     userId: string,

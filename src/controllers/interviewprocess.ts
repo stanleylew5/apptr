@@ -150,7 +150,6 @@ class InterviewProcessController {
 
   async createInterviewProcess(
     organizationId: string,
-    organizationName: string,
     processName: string,
   ): Promise<string | null> {
     const { data, error } = await this.supabase
@@ -165,10 +164,7 @@ class InterviewProcessController {
       .single();
 
     if (error) {
-      console.error(
-        "[interviewProcessController] Error creating interview process:",
-        error,
-      );
+      console.error("Error creating interview process:", error);
       return null;
     }
 
@@ -197,10 +193,7 @@ class InterviewProcessController {
         .single();
 
       if (error) {
-        console.error(
-          "[interviewProcessController] Error creating interview category:",
-          error,
-        );
+        console.error("Error creating interview category:", error);
       } else if (data) {
         categoryMap[category.name] = data.category_id;
       }
@@ -219,7 +212,7 @@ class InterviewProcessController {
     }>,
     categoryMap: Record<string, string>,
   ): Promise<Record<string, string[]>> {
-    // Map to store process_round_id arrays per category (indexed by category name)
+    // map to store process_round_id arrays per category
     // ex: { "HR": ["round-id-1", "round-id-2"], "Technical": ["round-id-1"] }
     const processRoundsByCategory: Record<string, string[]> = {};
 
@@ -241,9 +234,7 @@ class InterviewProcessController {
     )) {
       const categoryId = categoryMap[categoryName];
       if (!categoryId) {
-        console.warn(
-          `[interviewProcessController] No category ID found for: ${categoryName}`,
-        );
+        console.warn(`No category ID found for: ${categoryName}`);
         continue;
       }
 
@@ -263,10 +254,7 @@ class InterviewProcessController {
           .single();
 
         if (error) {
-          console.error(
-            "[interviewProcessController] Error creating process round:",
-            error,
-          );
+          console.error("Error creating process round:", error);
         } else if (data) {
           roundIds.push(data.process_round_id);
         }
@@ -307,10 +295,7 @@ class InterviewProcessController {
         .single();
 
       if (error) {
-        console.error(
-          "[interviewProcessController] Error creating candidate:",
-          error,
-        );
+        console.error("Error creating candidate:", error);
       } else if (data) {
         candidateMap[candidate.name] = data.candidate_id;
       }
@@ -329,7 +314,6 @@ class InterviewProcessController {
     candidateMap: Record<string, string>,
     processRoundsByCategory: Record<string, string[]>,
   ): Promise<boolean> {
-    // For each candidate, create interview records for their requirements
     for (const candidate of candidates) {
       const roundIndexPerCategory: Record<string, number> = {};
 
@@ -339,15 +323,13 @@ class InterviewProcessController {
         const roundIds = processRoundsByCategory[requirement.type] || [];
 
         if (!candidateId) {
-          console.warn(
-            `[interviewProcessController] No candidate ID found for: ${candidate.name}`,
-          );
+          console.warn(`No candidate ID found for: ${candidate.name}`);
           continue;
         }
 
         if (roundIds.length === 0) {
           console.warn(
-            `[interviewProcessController] No process rounds found for category: ${requirement.type}`,
+            `No process rounds found for category: ${requirement.type}`,
           );
           continue;
         }
@@ -358,36 +340,31 @@ class InterviewProcessController {
           const roundIndex = currentRoundIndex + i;
           if (roundIndex >= roundIds.length) {
             console.warn(
-              `[interviewProcessController] Not enough process rounds for candidate ${candidate.name}, category ${requirement.type}`,
+              `Not enough process rounds for candidate ${candidate.name}, category ${requirement.type}`,
             );
             break;
           }
 
-          const { error } = await this.supabase.from("interviews").insert([
-            {
-              organization_id: organizationId,
-              candidate_id: candidateId,
-              process_round_id: roundIds[roundIndex],
-              status: "unscheduled",
-              scheduled_start: null,
-              scheduled_end: null,
-              interview_confirmation: false,
-              candidate_confirmation: false,
-            },
-          ]);
+          const interviewData = {
+            candidate_id: candidateId,
+            process_round_id: roundIds[roundIndex],
+            status: "unscheduled",
+            scheduled_start: null,
+            scheduled_end: null,
+            interviewer_confirmation: false,
+            candidate_confirmation: false,
+          };
 
-          if (error) {
-            console.error(
-              "[interviewProcessController] Error creating interview:",
-              error,
-            );
-          }
+          const { error } = await this.supabase
+            .from("interviews")
+            .insert([interviewData])
+            .select();
+          if (error) console.error("Error creating interview:", error);
         }
 
         roundIndexPerCategory[requirement.type] = currentRoundIndex + count;
       }
     }
-
     return true;
   }
 
@@ -402,9 +379,7 @@ class InterviewProcessController {
     for (const assignment of interviewerAssignments) {
       const categoryId = categoryMap[assignment.interviewType];
       if (!categoryId) {
-        console.warn(
-          `[interviewProcessController] No category found for type: ${assignment.interviewType}`,
-        );
+        console.warn(`No category found for type: ${assignment.interviewType}`);
         continue;
       }
 
@@ -416,12 +391,7 @@ class InterviewProcessController {
         },
       ]);
 
-      if (error) {
-        console.error(
-          "[interviewProcessController] Error assigning interviewer:",
-          error,
-        );
-      }
+      if (error) console.error("Error assigning interviewer:", error);
     }
 
     return true;
