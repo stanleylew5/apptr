@@ -92,9 +92,7 @@ export const ViewProcesses = () => {
           <div className="flex justify-end">
             <button
               onClick={() =>
-                router.push(
-                  `/coordinator/process/create?org=${organizationId}`,
-                )
+                router.push(`/coordinator/process/create?org=${organizationId}`)
               }
               className="rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:cursor-pointer hover:bg-blue-700"
             >

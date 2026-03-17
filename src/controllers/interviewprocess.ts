@@ -13,7 +13,6 @@ export interface ProcessRound {
   process_round_id: string;
   process_id: string;
   round: number;
-  required_count: number;
   category_id: string;
   organization_id: string;
   category?: InterviewCategory;
@@ -78,7 +77,7 @@ class InterviewProcessController {
     const { data, error } = await this.supabase
       .from("process_rounds")
       .select(
-        "process_round_id, process_id, round, required_count, category_id, organization_id",
+        "process_round_id, process_id, round, category_id, organization_id",
       )
       .eq("process_id", processId)
       .order("round", { ascending: true });
@@ -98,7 +97,6 @@ class InterviewProcessController {
           process_round_id: round.process_round_id,
           process_id: round.process_id,
           round: round.round,
-          required_count: round.required_count,
           category_id: round.category_id,
           organization_id: round.organization_id,
           category: category || undefined,
@@ -222,7 +220,7 @@ class InterviewProcessController {
     categoryMap: Record<string, string>,
   ): Promise<Record<string, string[]>> {
     // Map to store process_round_id arrays per category (indexed by category name)
-    // e.g., { "HR": ["round-id-1", "round-id-2"], "Technical": ["round-id-1"] }
+    // ex: { "HR": ["round-id-1", "round-id-2"], "Technical": ["round-id-1"] }
     const processRoundsByCategory: Record<string, string[]> = {};
 
     // Count total interviews needed per category
@@ -286,6 +284,7 @@ class InterviewProcessController {
     candidatesData: Array<{
       name: string;
       email: string;
+      userId?: string;
       interviewRequirements: Array<{ type: string; count: number | string }>;
     }>,
   ): Promise<Record<string, string>> {
@@ -298,6 +297,7 @@ class InterviewProcessController {
         .insert([
           {
             organization_id: organizationId,
+            user_id: candidate.userId || null,
             full_name: candidate.name,
             email: candidate.email,
             process_id: processId,
