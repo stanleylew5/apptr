@@ -1,6 +1,5 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import Loading from "@/components/loading";
 
 const ProcessDashboard = () => {
   const searchParams = useSearchParams();

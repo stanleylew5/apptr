@@ -121,7 +121,6 @@ class OrganizationController {
   async getOrganizationMembers(organizationId: string): Promise<
     Array<{
       user_id: string;
-      full_name: string;
       role?: string;
     }>
   > {
@@ -135,9 +134,8 @@ class OrganizationController {
       return [];
     }
 
-    return (data ?? []).map((member: any) => ({
+    return (data ?? []).map((member) => ({
       user_id: member.user_id,
-      full_name: member.users?.full_name || "Unknown",
       role: member.role || undefined,
     }));
   }
