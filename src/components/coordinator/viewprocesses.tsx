@@ -89,6 +89,18 @@ export const ViewProcesses = () => {
         </div>
       ) : (
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <button
+              onClick={() =>
+                router.push(
+                  `/coordinator/process/create?org=${organizationId}`,
+                )
+              }
+              className="rounded-lg bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:cursor-pointer hover:bg-blue-700"
+            >
+              + Create New Process
+            </button>
+          </div>
           {processes.map((process) => (
             <InterviewProcessCard key={process.process_id} process={process} />
           ))}
