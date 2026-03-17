@@ -60,6 +60,7 @@ const CreateProcess: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [newCandidateName, setNewCandidateName] = useState("");
   const [newCandidateEmail, setNewCandidateEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch interviewers from org
   useEffect(() => {
@@ -167,6 +168,11 @@ const CreateProcess: React.FC = () => {
   };
 
   const handleNext = () => {
+    setError(null);
+    if (currentStep === 1 && interviewTypes.length === 0) {
+      setError("Please add at least one interview category before proceeding");
+      return;
+    }
     if (currentStep < 3) setCurrentStep(currentStep + 1);
   };
 
@@ -315,6 +321,12 @@ const CreateProcess: React.FC = () => {
 
         {/* Step Content */}
         <div className="mb-8">
+          {error && (
+            <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+              {error}
+            </div>
+          )}
+
           {currentStep === 1 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-blue-800">
