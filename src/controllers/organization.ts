@@ -2,14 +2,6 @@ import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Organization, OrganizationMemberRow } from "@/types/types";
 
-interface OrganizationMemberData {
-  user_id: string;
-  users: {
-    full_name: string;
-  } | null;
-  role: string | null;
-}
-
 class OrganizationController {
   private supabase: SupabaseClient;
 
