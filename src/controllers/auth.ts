@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { createClient, SupabaseClient, Session } from "@supabase/supabase-js";
-import { User } from "@/types/types";
+import { User } from "@/types/user";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";

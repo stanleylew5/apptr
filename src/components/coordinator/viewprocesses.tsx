@@ -1,14 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  interviewProcessController,
-  InterviewProcess,
-} from "@/controllers/interviewprocess";
+import { interviewProcessController } from "@/controllers/interviewprocess";
 import { organizationController } from "@/controllers/organization";
 import Loading from "@/components/loading";
 import { InterviewProcessCard } from "@/components/coordinator/interviewprocesscard";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
+import { InterviewProcess } from "@/types/process";
 
 export const ViewProcesses = () => {
   const searchParams = useSearchParams();

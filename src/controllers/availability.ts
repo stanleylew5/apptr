@@ -30,13 +30,9 @@ class AvailabilityController {
       const userId = await authController.getCurrentUserId();
 
       if (!userId) {
-        console.error("[fetchUserAvailability] User not authenticated");
+        console.error("User not authenticated");
         return [];
       }
-
-      console.log(
-        `[fetchUserAvailability] Fetching availability for current user: ${userId}`,
-      );
 
       const { data, error } = await this.supabase
         .from("availability")
@@ -45,19 +41,8 @@ class AvailabilityController {
         .order("start_time", { ascending: true });
 
       if (error) {
-        console.error("[fetchUserAvailability] Supabase error:", error.message);
+        console.error("Error fetching availability:", error.message);
         return [];
-      }
-
-      console.log(
-        `[fetchUserAvailability] ✓ Found ${(data || []).length} availability records`,
-      );
-      if (data && data.length > 0) {
-        data.forEach((record, idx) => {
-          console.log(
-            `  Record ${idx + 1}: ${record.start_time} - ${record.end_time}`,
-          );
-        });
       }
 
       return data || [];
@@ -71,10 +56,6 @@ class AvailabilityController {
     userId: string,
   ): Promise<AvailabilityRecord[]> {
     try {
-      console.log(
-        `[fetchAvailabilityByUserId] Fetching availability for user: ${userId}`,
-      );
-
       const { data, error } = await this.supabase
         .from("availability")
         .select("*")
@@ -82,22 +63,8 @@ class AvailabilityController {
         .order("start_time", { ascending: true });
 
       if (error) {
-        console.error(
-          `[fetchAvailabilityByUserId] Supabase error for user ${userId}:`,
-          error.message,
-        );
+        console.error("Error fetching availability:", error.message);
         return [];
-      }
-
-      console.log(
-        `[fetchAvailabilityByUserId] ✓ Found ${(data || []).length} records for user ${userId}`,
-      );
-      if (data && data.length > 0) {
-        data.forEach((record, idx) => {
-          console.log(
-            `  Record ${idx + 1}: ${record.start_time} - ${record.end_time}`,
-          );
-        });
       }
 
       return data || [];
@@ -151,22 +118,15 @@ class AvailabilityController {
     timeSlots: TimeSlot[],
     userId: string,
   ): Omit<AvailabilityRecord, "availability_id" | "created_at">[] {
-    console.log(
-      `[transformToDatabaseFormat] Converting ${timeSlots.length} slots for user ${userId}`,
-    );
     return timeSlots.map((slot) => {
       const startTimestamp = this.combineDateTime(slot.day, slot.startTime);
       const endTimestamp = this.combineDateTime(slot.day, slot.endTime);
 
-      const record = {
+      return {
         user_id: userId,
         start_time: startTimestamp,
         end_time: endTimestamp,
       };
-      console.log(
-        `[transformToDatabaseFormat] Converted: ${slot.day} ${slot.startTime}-${slot.endTime} -> start_time: ${startTimestamp}, end_time: ${endTimestamp}`,
-      );
-      return record;
     });
   }
 
@@ -200,14 +160,9 @@ class AvailabilityController {
       const userId = await authController.getCurrentUserId();
 
       if (!userId) {
-        console.error("[saveAvailability] User not authenticated");
+        console.error("User not authenticated");
         return false;
       }
-
-      console.log(`[saveAvailability] ✓ User authenticated: ${userId}`);
-      console.log(
-        `[saveAvailability] Deleting old availability records for user ${userId}`,
-      );
 
       const { error: deleteError } = await this.supabase
         .from("availability")
@@ -215,48 +170,25 @@ class AvailabilityController {
         .eq("user_id", userId);
 
       if (deleteError) {
-        console.error(
-          "[saveAvailability] Error deleting old availability:",
-          deleteError.message,
-        );
+        console.error("Error deleting old availability:", deleteError.message);
         return false;
       }
-
-      console.log(`[saveAvailability] ✓ Deleted old records`);
 
       // Insert new availability
       if (timeSlots.length > 0) {
         const dataToInsert = this.transformToDatabaseFormat(timeSlots, userId);
 
-        console.log(
-          `[saveAvailability] About to insert ${dataToInsert.length} records:`,
-        );
-        dataToInsert.forEach((record, idx) => {
-          console.log(
-            `  Record ${idx + 1}: user_id=${record.user_id}, start_time=${record.start_time}, end_time=${record.end_time}`,
-          );
-        });
-
-        const { error: insertError, data: insertData } = await this.supabase
+        const { error: insertError } = await this.supabase
           .from("availability")
-          .insert(dataToInsert)
-          .select();
+          .insert(dataToInsert);
 
         if (insertError) {
           console.error(
-            "[saveAvailability] Error inserting new availability:",
+            "Error inserting new availability:",
             insertError.message,
           );
           return false;
         }
-
-        console.log(
-          `[saveAvailability] ✓ Successfully inserted ${insertData?.length || 0} records`,
-        );
-      } else {
-        console.log(
-          `[saveAvailability] No time slots to insert (array length: 0)`,
-        );
       }
 
       return true;

@@ -3,13 +3,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ScheduledDashboard } from "./scheduleddashboard";
 import { organizationController } from "@/controllers/organization";
-import {
-  interviewProcessController,
-  InterviewProcess,
-} from "@/controllers/interviewprocess";
+import { interviewProcessController } from "@/controllers/interviewprocess";
 import { InterviewProcessCard } from "./interviewprocesscard";
 import Loading from "@/components/loading";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
+import { InterviewProcess } from "@/types/process";
 
 const ProcessDashboard = () => {
   const searchParams = useSearchParams();
@@ -59,7 +57,6 @@ const ProcessDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <h1 className="text-4xl font-bold text-blue-900">
@@ -70,7 +67,6 @@ const ProcessDashboard = () => {
           </p>
         </div>
 
-        {/* Tab Navigation */}
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex gap-8 border-t border-gray-200">
             <button
@@ -81,7 +77,7 @@ const ProcessDashboard = () => {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              📅 Scheduled Interviews
+              Scheduled Interviews
             </button>
             <button
               onClick={() => setActiveTab("processes")}
@@ -91,13 +87,12 @@ const ProcessDashboard = () => {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              ⚙️ Interview Processes
+              Interview Processes
             </button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
       <div className="mx-auto max-w-7xl px-6 py-12">
         {error && (
           <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
@@ -149,7 +144,6 @@ const ProcessDashboard = () => {
         )}
       </div>
 
-      {/* Back Button */}
       <div className="mx-auto max-w-7xl px-6 pb-6">
         <button
           onClick={() => router.push("/coordinator")}

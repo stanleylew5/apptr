@@ -1,42 +1,12 @@
 import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { availabilityController } from "./availability";
-
-export interface InterviewCategory {
-  category_id: string;
-  category_name: string;
-  minutes: number;
-  organization_id: string;
-  process_id: string;
-}
-
-export interface ProcessRound {
-  process_round_id: string;
-  process_id: string;
-  round: number;
-  category_id: string;
-  organization_id: string;
-  category?: InterviewCategory;
-}
-
-export interface InterviewProcess {
-  process_id: string;
-  organization_id: string;
-  process_name?: string;
-  rounds?: ProcessRound[];
-}
-
-export interface ScheduledInterview {
-  interview_id: string;
-  candidate_name: string;
-  interviewer_name: string;
-  category_name: string;
-  round: number;
-  scheduled_start: string;
-  scheduled_end: string;
-  status: string;
-}
-
+import {
+  InterviewProcess,
+  InterviewCategory,
+  ProcessRound,
+} from "@/types/process";
+import { ScheduledInterview } from "@/types/interview";
 class InterviewProcessController {
   private supabase: SupabaseClient;
 
@@ -53,10 +23,7 @@ class InterviewProcessController {
       .eq("organization_id", organizationId);
 
     if (error) {
-      console.error(
-        "[interviewProcessController] Error fetching interview processes:",
-        error,
-      );
+      console.error(error);
       return [];
     }
     return data || [];
@@ -74,10 +41,7 @@ class InterviewProcessController {
       .single();
 
     if (error) {
-      console.error(
-        "[interviewProcessController] Error fetching interview category:",
-        error,
-      );
+      console.error(error);
       return null;
     }
     return data;
@@ -95,10 +59,7 @@ class InterviewProcessController {
       .order("round", { ascending: true });
 
     if (error) {
-      console.error(
-        "[interviewProcessController] Error fetching process rounds:",
-        error,
-      );
+      console.error(error);
       return [];
     }
 
@@ -148,10 +109,7 @@ class InterviewProcessController {
       .eq("process_id", processId);
 
     if (roundsError) {
-      console.error(
-        "[getScheduledInterviews] Error fetching rounds:",
-        roundsError,
-      );
+      console.error(roundsError);
       return [];
     }
 
@@ -182,7 +140,7 @@ class InterviewProcessController {
       .order("scheduled_start", { ascending: true });
 
     if (error) {
-      console.error("[getScheduledInterviews] Error:", error);
+      console.error(error);
       return [];
     }
 
@@ -351,9 +309,6 @@ class InterviewProcessController {
 
       // If no userId provided, try to lookup by email in users table
       if (!userId && candidate.email) {
-        console.log(
-          `[createCandidates] No userId for ${candidate.name}, looking up by email: ${candidate.email}`,
-        );
         const { data: userResult, error: userError } = await this.supabase
           .from("users")
           .select("id")
@@ -362,9 +317,6 @@ class InterviewProcessController {
 
         if (!userError && userResult) {
           userId = userResult.id;
-          console.log(
-            `[createCandidates] Found user_id for ${candidate.name}: ${userId}`,
-          );
         } else {
           console.warn(
             `[createCandidates] Could not find user for email ${candidate.email}`,
@@ -501,22 +453,9 @@ class InterviewProcessController {
     message: string;
   }> {
     try {
-      console.log(
-        `[autoSchedule] Starting auto-schedule for process: ${processId}`,
-      );
-
       // Get all unscheduled interviews for this process with details
       const unscheduledInterviews =
         await this.getUnscheduledInterviewsForProcess(processId);
-
-      console.log(
-        `[autoSchedule] Found ${unscheduledInterviews.length} unscheduled interviews`,
-      );
-      unscheduledInterviews.forEach((iv) => {
-        console.log(
-          `  - Interview ${iv.interview_id}: Candidate ${iv.candidate_id}, Category ${iv.category_name}, Round ${iv.round}`,
-        );
-      });
 
       if (unscheduledInterviews.length === 0) {
         return {
@@ -535,9 +474,6 @@ class InterviewProcessController {
         unscheduledInterviews,
         "candidate_id",
       );
-      console.log(
-        `[autoSchedule] Grouped into ${Object.keys(interviewsByCandidate).length} candidates`,
-      );
 
       const failed: Array<{
         candidateName: string;
@@ -550,19 +486,12 @@ class InterviewProcessController {
       for (const [candidateId, candidateInterviews] of Object.entries(
         interviewsByCandidate,
       )) {
-        console.log(`\n[autoSchedule] Processing candidate: ${candidateId}`);
-
         // Get candidate details
         const candidateData = await this.supabase
           .from("candidates")
           .select("full_name, user_id, candidate_id, email")
           .eq("candidate_id", candidateId)
           .single();
-
-        console.log(
-          `[autoSchedule] Fetching candidate data for candidate_id: ${candidateId}`,
-        );
-        console.log(`[autoSchedule] Candidate fetch result:`, candidateData);
 
         if (candidateData.error || !candidateData.data) {
           console.error(
@@ -576,41 +505,20 @@ class InterviewProcessController {
         let candidateUserId = candidateData.data.user_id;
         const candidateEmail = candidateData.data.email;
 
-        console.log(
-          `[autoSchedule] Candidate: ${candidateName} (candidate_id: ${candidateId}, user_id: ${candidateUserId}, email: ${candidateEmail})`,
-        );
-
         // If no user_id, try to lookup by email in the users table
         if (!candidateUserId && candidateEmail) {
-          console.log(
-            `[autoSchedule] No user_id found, attempting to lookup by email: ${candidateEmail}`,
-          );
-
           const { data: userResult, error: userError } = await this.supabase
             .from("users")
             .select("id")
             .eq("email", candidateEmail)
             .single();
 
-          console.log(`[autoSchedule] User lookup result:`, userResult);
-          console.log(`[autoSchedule] User lookup error:`, userError);
-
           if (!userError && userResult) {
             candidateUserId = userResult.id;
-            console.log(
-              `[autoSchedule] ✓ Found user_id from email lookup: ${candidateUserId}`,
-            );
-          } else {
-            console.warn(
-              `[autoSchedule] ⚠️ Could not find user record for email ${candidateEmail}`,
-            );
           }
         }
 
         if (!candidateUserId) {
-          console.warn(
-            `[autoSchedule] ⚠️ Candidate ${candidateName} has no user_id and could not be looked up by email!`,
-          );
           (candidateInterviews as typeof unscheduledInterviews).forEach(
             (interview) => {
               failed.push({
@@ -624,44 +532,10 @@ class InterviewProcessController {
         }
 
         // Get candidate availability
-        console.log(
-          `[autoSchedule] ========== FETCHING AVAILABILITY FOR CANDIDATE ==========`,
-        );
-        console.log(
-          `[autoSchedule] Calling getAvailabilitySlots with userId: ${candidateUserId}`,
-        );
         const candidateAvailability =
           await this.getAvailabilitySlots(candidateUserId);
 
-        console.log(
-          `[autoSchedule] Returned from getAvailabilitySlots: ${candidateAvailability.length} slots`,
-        );
-        candidateAvailability.forEach((slot, idx) => {
-          console.log(
-            `  Slot ${idx + 1}: ${slot.start.toISOString()} to ${slot.end.toISOString()}`,
-          );
-        });
-        console.log(
-          `[autoSchedule] ========== END AVAILABILITY LOOKUP ==========`,
-        );
-
         if (candidateAvailability.length === 0) {
-          console.error(
-            `[autoSchedule] ⚠️ CRITICAL: No availability found for candidate ${candidateName}`,
-          );
-          console.error(
-            `[autoSchedule] Candidate details: name=${candidateName}, user_id=${candidateUserId}, email=${candidateEmail}`,
-          );
-          console.error(`[autoSchedule] Possible causes:`);
-          console.error(
-            `  1. Candidate has not yet submitted their availability through the UI`,
-          );
-          console.error(
-            `  2. Candidate's user_id is incorrect or doesn't match database records`,
-          );
-          console.error(
-            `  3. Availability data is stored under a different user_id`,
-          );
           // Mark all as failed
           (candidateInterviews as typeof unscheduledInterviews).forEach(
             (interview) => {
@@ -682,10 +556,6 @@ class InterviewProcessController {
 
         // Try to schedule each interview
         for (const interview of sortedInterviews) {
-          console.log(
-            `\n[autoSchedule] Attempting to schedule: ${interview.category_name} (Round ${interview.round})`,
-          );
-
           const isEarlyRound = interview.round <= 2; // Rounds 1-2 are priority
           const scheduled_slot = await this.findAndScheduleInterview(
             interview,
@@ -696,11 +566,8 @@ class InterviewProcessController {
 
           if (scheduled_slot) {
             scheduled++;
-            console.log(`[autoSchedule] ✓ Successfully scheduled`);
           } else {
-            console.warn(`[autoSchedule] ✗ Failed to schedule`);
             if (isEarlyRound) {
-              console.error(`[autoSchedule] Early round failed - aborting`);
               return {
                 success: false,
                 scheduled,
@@ -728,12 +595,6 @@ class InterviewProcessController {
         failed.length === 0
           ? `Successfully scheduled all ${scheduled} interviews!`
           : `Scheduled ${scheduled} interviews. ${failed.length} later-round interviews could not be scheduled. Please contact the candidate to reschedule.`;
-
-      console.log(`\n[autoSchedule] Final result: ${successMessage}`);
-      console.log(`[autoSchedule] Load distribution:`);
-      Object.entries(interviewerLoadMap).forEach(([interviewerId, load]) => {
-        console.log(`  Interviewer ${interviewerId}: ${load} interviews`);
-      });
 
       return {
         success: true,
@@ -763,10 +624,6 @@ class InterviewProcessController {
       minutes: number;
     }>
   > {
-    console.log(
-      `[getUnscheduledInterviews] Fetching unscheduled interviews for process: ${processId}`,
-    );
-
     // First, get all process_round_ids for this process
     const { data: roundsData, error: roundsError } = await this.supabase
       .from("process_rounds")
@@ -782,25 +639,15 @@ class InterviewProcessController {
     }
 
     if (!roundsData || roundsData.length === 0) {
-      console.warn(`[getUnscheduledInterviews] No rounds found for process`);
       return [];
     }
 
     const roundIds = roundsData.map((r) => r.process_round_id);
-    console.log(
-      `[getUnscheduledInterviews] Found ${roundIds.length} rounds for process: ${roundIds.join(", ")}`,
-    );
 
-    // Now get unscheduled interviews for these rounds
     const { data, error } = await this.supabase
       .from("interviews")
       .select(
-        `
-        interview_id,
-        candidate_id,
-        process_round_id,
-        process_rounds(round, category_id, interview_categories(category_id, category_name, minutes))
-      `,
+        "interview_id, candidate_id, process_round_id, process_rounds(round, category_id, interview_categories(category_name, minutes))",
       )
       .in("process_round_id", roundIds)
       .eq("status", "unscheduled")
@@ -812,13 +659,8 @@ class InterviewProcessController {
     }
 
     if (!data) {
-      console.warn(`[getUnscheduledInterviews] No data returned from query`);
       return [];
     }
-
-    console.log(
-      `[getUnscheduledInterviews] Raw query returned ${data.length} interviews`,
-    );
 
     // Filter to only interviews for this process and flatten nested structure
     const flattened: Array<{
@@ -837,9 +679,6 @@ class InterviewProcessController {
       // Get the category from nested structure
       const category = iv.process_rounds?.interview_categories;
       if (!category) {
-        console.warn(
-          `[getUnscheduledInterviews] Skipping interview ${iv.interview_id} - no category found`,
-        );
         continue;
       }
 
@@ -854,72 +693,56 @@ class InterviewProcessController {
       });
     }
 
-    console.log(
-      `[getUnscheduledInterviews] Flattened to ${flattened.length} interviews`,
-    );
-
     return flattened;
   }
 
   private async getAvailabilitySlots(
     userId: string,
   ): Promise<Array<{ start: Date; end: Date }>> {
-    console.log(
-      `[getAvailabilitySlots] ========== FETCHING AVAILABILITY ==========`,
-    );
-    console.log(
-      `[getAvailabilitySlots] Calling availabilityController.fetchAvailabilityByUserId() for user: ${userId}`,
-    );
-
     const records =
       await availabilityController.fetchAvailabilityByUserId(userId);
 
     if (!records || records.length === 0) {
-      console.warn(
-        `[getAvailabilitySlots] ⚠️ No availability records found for user ${userId}`,
-      );
-      console.log(
-        `[getAvailabilitySlots] Debugging: Ensure candidate has submitted availability through the UI`,
-      );
-      console.log(
-        `[getAvailabilitySlots] ========== END AVAILABILITY FETCH ==========`,
-      );
       return [];
     }
 
-    console.log(
-      `[getAvailabilitySlots] ✓ Processing ${records.length} availability records:`,
-    );
-    records.forEach((record, idx) => {
-      console.log(
-        `  Record ${idx + 1}: start_time="${record.start_time}", end_time="${record.end_time}"`,
-      );
-    });
+    // Transform records using the same method the Availability component uses
+    const timeSlots =
+      availabilityController.transformToComponentFormat(records);
 
-    const slots = records.map((slot) => {
-      const startTime = new Date(slot.start_time);
-      const endTime = new Date(slot.end_time);
-      console.log(
-        `[getAvailabilitySlots] Converting: start_time="${slot.start_time}" -> ${startTime.toISOString()}, end_time="${slot.end_time}" -> ${endTime.toISOString()}`,
+    // Convert TimeSlots to Date objects for scheduling
+    // Using a simple helper to parse 12-hour format back to 24-hour
+    const parseTime = (timeStr: string): number => {
+      const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!match) return 0;
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const period = match[3].toUpperCase();
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+      return hours + minutes / 60;
+    };
+
+    const slots = timeSlots.map((slot) => {
+      const startHours = parseTime(slot.startTime);
+      const endHours = parseTime(slot.endTime);
+
+      const startTime = new Date(slot.day + "T00:00:00Z");
+      startTime.setUTCHours(
+        Math.floor(startHours),
+        (startHours % 1) * 60,
+        0,
+        0,
       );
+
+      const endTime = new Date(slot.day + "T00:00:00Z");
+      endTime.setUTCHours(Math.floor(endHours), (endHours % 1) * 60, 0, 0);
+
       return {
         start: startTime,
         end: endTime,
       };
     });
-
-    console.log(
-      `[getAvailabilitySlots] ✓ Successfully converted ${slots.length} slots for user ${userId}:`,
-    );
-    slots.forEach((slot, idx) => {
-      const duration = (slot.end.getTime() - slot.start.getTime()) / 60000;
-      console.log(
-        `  Slot ${idx + 1}: ${slot.start.toISOString()} - ${slot.end.toISOString()} (${Math.round(duration)}min)`,
-      );
-    });
-    console.log(
-      `[getAvailabilitySlots] ========== END AVAILABILITY FETCH ==========`,
-    );
 
     return slots;
   }
@@ -927,10 +750,6 @@ class InterviewProcessController {
   private async getInterviewersForCategory(
     categoryId: string,
   ): Promise<string[]> {
-    console.log(
-      `[getInterviewersForCategory] Fetching interviewers for category: ${categoryId}`,
-    );
-
     const { data, error } = await this.supabase
       .from("interviewers")
       .select("user_id")
@@ -942,9 +761,6 @@ class InterviewProcessController {
     }
 
     const userIds = (data || []).map((row) => row.user_id);
-    console.log(
-      `[getInterviewersForCategory] Found ${userIds.length} interviewers: ${userIds.join(", ")}`,
-    );
 
     return userIds;
   }
@@ -963,28 +779,10 @@ class InterviewProcessController {
     candidateName: string,
     interviewerLoadMap: Record<string, number>,
   ): Promise<boolean> {
-    console.log(
-      `\n[findAndSchedule] Scheduling ${interview.category_name} (${interview.minutes}min) for ${candidateName}`,
-    );
-    console.log(
-      `[findAndSchedule] Candidate has ${candidateAvailability.length} availability slots`,
-    );
-
     // Get available interviewers for this category
     const interviewerIds = await this.getInterviewersForCategory(
       interview.category_id,
     );
-
-    console.log(
-      `[findAndSchedule] Found ${interviewerIds.length} interviewers for category`,
-    );
-
-    if (interviewerIds.length === 0) {
-      console.warn(
-        `[findAndSchedule] No interviewers assigned to category: ${interview.category_name}`,
-      );
-      return false;
-    }
 
     // Sort interviewers by current load (least loaded first)
     const sortedInterviewerIds = interviewerIds.sort((a, b) => {
@@ -993,42 +791,12 @@ class InterviewProcessController {
       return loadA - loadB;
     });
 
-    console.log(`[findAndSchedule] Sorted interviewers by load (ascending)`);
-
     // Try to find a common time slot with an interviewer (starting with least loaded)
     for (const interviewerId of sortedInterviewerIds) {
-      console.log(
-        `[findAndSchedule] Trying interviewer: ${interviewerId} (load: ${interviewerLoadMap[interviewerId] ?? 0})`,
-      );
-
       const interviewerAvailability =
         await this.getAvailabilitySlots(interviewerId);
 
-      console.log(
-        `[findAndSchedule] Interviewer has ${interviewerAvailability.length} slots`,
-      );
-
-      if (interviewerAvailability.length === 0) {
-        console.log(
-          `[findAndSchedule] Interviewer has no availability, skipping`,
-        );
-        continue;
-      }
-
-      // Log slot comparison
-      console.log(
-        `[findAndSchedule] Comparing slots (looking for ${interview.minutes}min overlap):`,
-      );
-      candidateAvailability.forEach((slot, idx) => {
-        console.log(
-          `  Candidate slot ${idx + 1}: ${slot.start.toISOString()} - ${slot.end.toISOString()}`,
-        );
-      });
-      interviewerAvailability.forEach((slot, idx) => {
-        console.log(
-          `  Interviewer slot ${idx + 1}: ${slot.start.toISOString()} - ${slot.end.toISOString()}`,
-        );
-      });
+      if (interviewerAvailability.length === 0) continue;
 
       // Find a matching time slot
       const matchedSlot = this.findCommonTimeSlot(
@@ -1038,10 +806,6 @@ class InterviewProcessController {
       );
 
       if (matchedSlot) {
-        console.log(
-          `[findAndSchedule] ✓ Found matching slot: ${matchedSlot.start.toISOString()} - ${matchedSlot.end.toISOString()}`,
-        );
-
         // Schedule the interview
         const { error } = await this.supabase
           .from("interviews")
@@ -1057,23 +821,13 @@ class InterviewProcessController {
           // Update load tracking
           interviewerLoadMap[interviewerId] =
             (interviewerLoadMap[interviewerId] ?? 0) + 1;
-          console.log(
-            `[findAndSchedule] ✓ Successfully scheduled interview ${interview.interview_id} with interviewer ${interviewerId}`,
-          );
           return true;
         } else {
-          console.error("[findAndSchedule] Error scheduling interview:", error);
+          console.error("Error scheduling interview:", error);
         }
-      } else {
-        console.log(
-          `[findAndSchedule] No matching slot found with this interviewer`,
-        );
       }
     }
 
-    console.warn(
-      `[findAndSchedule] Unable to find common availability for ${candidateName} - ${interview.category_name}`,
-    );
     return false;
   }
 
@@ -1083,10 +837,6 @@ class InterviewProcessController {
     durationMinutes: number,
   ): { start: Date; end: Date } | null {
     // Try to find overlapping time slot between two sets of availability
-    console.log(
-      `[findCommonTimeSlot] Looking for ${durationMinutes}min overlap between ${slots1.length} and ${slots2.length} slots`,
-    );
-
     for (let i = 0; i < slots1.length; i++) {
       for (let j = 0; j < slots2.length; j++) {
         const slot1 = slots1[i];
@@ -1102,15 +852,7 @@ class InterviewProcessController {
         const durationMs = durationMinutes * 60 * 1000;
         const overlapDurationMs = overlapEnd.getTime() - overlapStart.getTime();
 
-        console.log(
-          `[findCommonTimeSlot] Comparing slot1 (${slot1.start.toISOString()} - ${slot1.end.toISOString()}) with slot2 (${slot2.start.toISOString()} - ${slot2.end.toISOString()})`,
-        );
-        console.log(
-          `[findCommonTimeSlot] Overlap: ${overlapStart.toISOString()} - ${overlapEnd.toISOString()} = ${Math.round(overlapDurationMs / 60000)}min (need ${durationMinutes}min)`,
-        );
-
         if (overlapDurationMs >= durationMs) {
-          console.log(`[findCommonTimeSlot] ✓ Valid overlap found!`);
           // Found a valid time slot
           return {
             start: overlapStart,
@@ -1120,7 +862,6 @@ class InterviewProcessController {
       }
     }
 
-    console.log(`[findCommonTimeSlot] No valid overlap found`);
     return null;
   }
 

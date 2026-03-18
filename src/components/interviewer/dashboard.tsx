@@ -7,7 +7,7 @@ import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
 import { JoinOrganization } from "@/components/interviewer/joinorganization";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
 
 type ViewMode = "schedule" | "availability";
 

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
 import Loading from "@/components/loading";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
 
 interface JoinOrganizationProps {
   onOrganizationSelected: (org: Organization) => void;

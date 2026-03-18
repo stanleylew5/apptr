@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Organization, OrganizationMemberRow } from "@/types/types";
+import { Organization, OrganizationMemberRow } from "@/types/organization";
 
 class OrganizationController {
   private supabase: SupabaseClient;

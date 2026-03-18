@@ -1,5 +1,5 @@
 "use client";
-import { ProcessRound } from "@/controllers/interviewprocess";
+import { ProcessRound } from "@/types/process";
 
 interface ProcessRoundsListProps {
   rounds: ProcessRound[];

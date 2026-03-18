@@ -1,11 +1,8 @@
 "use client";
 import { useState } from "react";
-import {
-  InterviewProcess,
-  interviewProcessController,
-} from "@/controllers/interviewprocess";
+import { interviewProcessController } from "@/controllers/interviewprocess";
 import { ProcessRoundsList } from "./processroundslist";
-
+import { InterviewProcess } from "@/types/process";
 interface InterviewProcessCardProps {
   process: InterviewProcess;
 }
