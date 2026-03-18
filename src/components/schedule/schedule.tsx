@@ -10,7 +10,6 @@ import { authController } from "@/controllers/auth";
 export function Schedule() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [role, setRole] = useState<string>("");
-
   // Filter interviews based on confirmation status from both parties
   const pending = interviews.filter(
     (i) => !(i.interviewer_confirmation && i.candidate_confirmation),
@@ -28,7 +27,7 @@ export function Schedule() {
       if (!userRole) return;
       setRole(userRole);
 
-      const data = await interviewController.getCandidateInterviews(
+      const data = await interviewController.getUserInterviews(
         user.user_id,
         userRole,
       );

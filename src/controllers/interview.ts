@@ -50,16 +50,20 @@ class InterviewController {
     }
   }
 
-  // Fetch all appts and appt info for a candidate and put into an interview array
-  async getCandidateInterviews(
-    userId: string,
-    role: string,
-  ): Promise<Interview[]> {
-    const { data, error } = await this.supabase
+  // Fetch all appts and appt info for a user and put into an interview array
+  async getUserInterviews(userId: string, role: string): Promise<Interview[]> {
+    let query = this.supabase
       .from("interview_details")
       .select("*")
-      .eq("candidate_id", userId)
       .order("scheduled_start", { ascending: true });
+
+    if (role === "candidate") {
+      query = query.eq("candidate_user_id", userId);
+    } else if (role === "interviewer") {
+      query = query.eq("interviewer_user_id", userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     if (!data) return [];
