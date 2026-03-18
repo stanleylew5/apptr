@@ -7,7 +7,7 @@ import { interviewController } from "@/controllers/interview";
 import { Interview } from "@/types/interview";
 import { authController } from "@/controllers/auth";
 
-export function Schedule({ forceRole }: { forceRole?: string }) {
+export function Schedule({ forceRole }: { forceRole?: string | null }) {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [role, setRole] = useState<string>("");
   // Filter interviews based on confirmation status from both parties
