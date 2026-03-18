@@ -1,10 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  interviewProcessController,
-  ScheduledInterview,
-} from "@/controllers/interviewprocess";
+import { interviewProcessController } from "@/controllers/interviewprocess";
 import Loading from "@/components/loading";
+import { ScheduledInterview } from "@/types/interview";
 
 interface ScheduledDashboardProps {
   organizationId: string;

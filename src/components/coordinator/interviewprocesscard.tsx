@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { interviewProcessController } from "@/controllers/interviewprocess";
 import { ProcessRoundsList } from "./processroundslist";
 import { InterviewProcess } from "@/types/process";
+
 interface InterviewProcessCardProps {
   process: InterviewProcess;
 }
@@ -22,6 +23,32 @@ export const InterviewProcessCard = ({
   const [schedulingResult, setSchedulingResult] =
     useState<SchedulingResult | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [unscheduledCount, setUnscheduledCount] = useState(0);
+  const [loadingInterviews, setLoadingInterviews] = useState(true);
+
+  useEffect(() => {
+    const checkUnscheduledInterviews = async () => {
+      try {
+        const allInterviews =
+          await interviewProcessController.getAllInterviewsForProcess(
+            process.process_id,
+          );
+        const unscheduled = allInterviews.filter(
+          (i) => i.status !== "scheduled",
+        ).length;
+        setUnscheduledCount(unscheduled);
+      } catch (error) {
+        console.error(
+          "[InterviewProcessCard] Error fetching interviews:",
+          error,
+        );
+      } finally {
+        setLoadingInterviews(false);
+      }
+    };
+
+    checkUnscheduledInterviews();
+  }, [process.process_id]);
 
   const handleAutoSchedule = async () => {
     setIsLoading(true);
@@ -31,6 +58,15 @@ export const InterviewProcessCard = ({
       );
       setSchedulingResult(result);
       setShowResultModal(true);
+      // Refresh unscheduled count after scheduling
+      const allInterviews =
+        await interviewProcessController.getAllInterviewsForProcess(
+          process.process_id,
+        );
+      const unscheduled = allInterviews.filter(
+        (i) => i.status !== "scheduled",
+      ).length;
+      setUnscheduledCount(unscheduled);
     } catch (error) {
       console.error("[autoSchedule] Error:", error);
       setSchedulingResult({
@@ -87,16 +123,28 @@ export const InterviewProcessCard = ({
               <h4 className="text-lg font-semibold text-gray-800">
                 Interview Rounds ({process.rounds?.length || 0})
               </h4>
-              <button
-                onClick={handleAutoSchedule}
-                disabled={isLoading}
-                className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isLoading ? "Scheduling..." : "Auto Schedule"}
-              </button>
+              {!loadingInterviews && unscheduledCount > 0 && (
+                <button
+                  onClick={handleAutoSchedule}
+                  disabled={isLoading}
+                  className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoading
+                    ? "Scheduling..."
+                    : `Auto Schedule (${unscheduledCount})`}
+                </button>
+              )}
+              {!loadingInterviews && unscheduledCount === 0 && (
+                <div className="rounded-lg bg-green-100 px-4 py-2 font-semibold text-green-800">
+                  All Scheduled ✓
+                </div>
+              )}
             </div>
             {process.rounds ? (
-              <ProcessRoundsList rounds={process.rounds} />
+              <ProcessRoundsList
+                rounds={process.rounds}
+                processId={process.process_id}
+              />
             ) : (
               <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-6 text-center">
                 <p className="text-gray-600">No rounds data available</p>
@@ -108,7 +156,7 @@ export const InterviewProcessCard = ({
 
       {/* Scheduling Result Modal */}
       {showResultModal && schedulingResult && (
-        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center">
           <div className="mx-4 max-h-96 w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-8 shadow-lg">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">
               Scheduling Results

@@ -148,9 +148,24 @@ class AvailabilityController {
       hours = 0;
     }
 
-    // Create date at UTC midnight, then set UTC time to avoid timezone offset issues
+    // Calculate timezone offset for this specific date (accounts for daylight saving)
+    const testDate = new Date(dateStr + "T12:00:00");
+    const utcHour = testDate.getUTCHours();
+
+    // Get the local hour using toLocaleString in America/Los_Angeles timezone
+    const localString = testDate.toLocaleString("en-US", {
+      timeZone: "America/Los_Angeles",
+      hour: "numeric",
+      hour12: false,
+    });
+    const localHour = parseInt(localString);
+
+    // Calculate offset: positive = ahead of UTC
+    const offset = utcHour - localHour;
+
+    // Create date at UTC midnight, then set UTC time adjusted by timezone offset
     const date = new Date(dateStr + "T00:00:00Z");
-    date.setUTCHours(hours, minutes, 0, 0);
+    date.setUTCHours(hours + offset, minutes, 0, 0);
 
     return date.toISOString();
   }

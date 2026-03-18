@@ -85,20 +85,50 @@ const CreateProcess: React.FC = () => {
       newTypeDuration &&
       parseInt(newTypeDuration.toString()) > 0
     ) {
-      setInterviewTypes([
+      const updatedTypes = [
         ...interviewTypes,
         {
           name: newTypeName.trim(),
           duration: parseInt(newTypeDuration.toString()),
         },
-      ]);
+      ];
+      setInterviewTypes(updatedTypes);
+
+      // Update all existing candidates to include the new interview type
+      setCandidates((prev) =>
+        prev.map((cand) => ({
+          ...cand,
+          interviewRequirements: updatedTypes.map((type) => {
+            // Keep existing count if it was already there, otherwise empty
+            const existing = cand.interviewRequirements.find(
+              (r) => r.type === type.name,
+            );
+            return {
+              type: type.name,
+              count: existing ? existing.count : "",
+            };
+          }),
+        })),
+      );
+
       setNewTypeName("");
       setNewTypeDuration("");
     }
   };
 
   const removeInterviewType = (index: number) => {
-    setInterviewTypes(interviewTypes.filter((_, i) => i !== index));
+    const updatedTypes = interviewTypes.filter((_, i) => i !== index);
+    setInterviewTypes(updatedTypes);
+
+    // Update all existing candidates to remove the deleted interview type
+    setCandidates((prev) =>
+      prev.map((cand) => ({
+        ...cand,
+        interviewRequirements: cand.interviewRequirements.filter((req) =>
+          updatedTypes.some((t) => t.name === req.type),
+        ),
+      })),
+    );
   };
 
   const addInterviewerAssignment = () => {

@@ -130,11 +130,11 @@ class InterviewProcessController {
         scheduled_end,
         process_rounds(round, interview_categories(category_name)),
         candidates(full_name),
-        users(full_name)
+        interviewers(users(full_name))
       `,
       )
       .in("process_round_id", roundIds)
-      .eq("status", "scheduled")
+      .eq("status", "confirmed")
       .not("scheduled_start", "is", null)
       .not("scheduled_end", "is", null)
       .order("scheduled_start", { ascending: true });
@@ -154,7 +154,7 @@ class InterviewProcessController {
       const iv = interview as any;
       const category = iv.process_rounds?.interview_categories;
       const candidate = iv.candidates;
-      const interviewer = iv.users;
+      const interviewer = iv.interviewers?.users;
 
       if (!category || !candidate) continue;
 
@@ -171,6 +171,103 @@ class InterviewProcessController {
     }
 
     return scheduled;
+  }
+
+  async getAllInterviewsForProcess(processId: string): Promise<
+    Array<{
+      interview_id: string;
+      candidate_name: string;
+      interviewer_name: string | null;
+      category_name: string;
+      round: number;
+      scheduled_start: string | null;
+      scheduled_end: string | null;
+      status: string;
+      interviewer_confirmation: boolean;
+      candidate_confirmation: boolean;
+    }>
+  > {
+    // Get all process_round_ids for this process
+    const { data: roundsData, error: roundsError } = await this.supabase
+      .from("process_rounds")
+      .select("process_round_id")
+      .eq("process_id", processId);
+
+    if (roundsError) {
+      console.error(roundsError);
+      return [];
+    }
+
+    if (!roundsData || roundsData.length === 0) {
+      return [];
+    }
+
+    const roundIds = roundsData.map((r) => r.process_round_id);
+
+    // Get all interviews for these rounds (both scheduled and unscheduled)
+    const { data, error } = await this.supabase
+      .from("interviews")
+      .select(
+        `
+        interview_id,
+        status,
+        scheduled_start,
+        scheduled_end,
+        interviewer_confirmation,
+        candidate_confirmation,
+        process_rounds(round, interview_categories(category_name)),
+        candidates(full_name),
+        interviewers(users(full_name))
+      `,
+      )
+      .in("process_round_id", roundIds)
+      .order("scheduled_start", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // Flatten the nested structure
+    const interviews: Array<{
+      interview_id: string;
+      candidate_name: string;
+      interviewer_name: string | null;
+      category_name: string;
+      round: number;
+      scheduled_start: string | null;
+      scheduled_end: string | null;
+      status: string;
+      interviewer_confirmation: boolean;
+      candidate_confirmation: boolean;
+    }> = [];
+
+    for (const interview of data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const iv = interview as any;
+      const category = iv.process_rounds?.interview_categories;
+      const candidate = iv.candidates;
+      const interviewer = iv.interviewers?.users;
+
+      if (!category || !candidate) continue;
+
+      interviews.push({
+        interview_id: iv.interview_id,
+        candidate_name: candidate?.full_name || "Unknown",
+        interviewer_name: interviewer?.full_name || null,
+        category_name: category?.category_name || "Unknown",
+        round: iv.process_rounds?.round || 0,
+        scheduled_start: iv.scheduled_start,
+        scheduled_end: iv.scheduled_end,
+        status: iv.status,
+        interviewer_confirmation: iv.interviewer_confirmation || false,
+        candidate_confirmation: iv.candidate_confirmation || false,
+      });
+    }
+
+    return interviews;
   }
 
   async createInterviewProcess(
@@ -311,17 +408,11 @@ class InterviewProcessController {
       if (!userId && candidate.email) {
         const { data: userResult, error: userError } = await this.supabase
           .from("users")
-          .select("id")
+          .select("user_id")
           .eq("email", candidate.email)
           .single();
 
-        if (!userError && userResult) {
-          userId = userResult.id;
-        } else {
-          console.warn(
-            `[createCandidates] Could not find user for email ${candidate.email}`,
-          );
-        }
+        if (!userError && userResult) userId = userResult.user_id;
       }
 
       const { data, error } = await this.supabase
@@ -366,26 +457,15 @@ class InterviewProcessController {
         const candidateId = candidateMap[candidate.name];
         const roundIds = processRoundsByCategory[requirement.type] || [];
 
-        if (!candidateId) {
-          console.warn(`No candidate ID found for: ${candidate.name}`);
-          continue;
-        }
+        if (!candidateId) continue;
 
-        if (roundIds.length === 0) {
-          console.warn(
-            `No process rounds found for category: ${requirement.type}`,
-          );
-          continue;
-        }
+        if (roundIds.length === 0) continue;
 
         // Create interview records for each round this candidate needs for this category
         const currentRoundIndex = roundIndexPerCategory[requirement.type] || 0;
         for (let i = 0; i < count; i++) {
           const roundIndex = currentRoundIndex + i;
           if (roundIndex >= roundIds.length) {
-            console.warn(
-              `Not enough process rounds for candidate ${candidate.name}, category ${requirement.type}`,
-            );
             break;
           }
 
@@ -403,7 +483,11 @@ class InterviewProcessController {
             .from("interviews")
             .insert([interviewData])
             .select();
-          if (error) console.error("Error creating interview:", error);
+          if (error)
+            console.error(
+              "[createInterviews] Error creating interview:",
+              error,
+            );
         }
 
         roundIndexPerCategory[requirement.type] = currentRoundIndex + count;
@@ -422,10 +506,7 @@ class InterviewProcessController {
   ): Promise<boolean> {
     for (const assignment of interviewerAssignments) {
       const categoryId = categoryMap[assignment.interviewType];
-      if (!categoryId) {
-        console.warn(`No category found for type: ${assignment.interviewType}`);
-        continue;
-      }
+      if (!categoryId) continue;
 
       const { error } = await this.supabase.from("interviewers").insert([
         {
@@ -482,11 +563,10 @@ class InterviewProcessController {
       }> = [];
       let scheduled = 0;
 
-      // Process each candidate's interviews
       for (const [candidateId, candidateInterviews] of Object.entries(
+        // Process each candidate's interviews
         interviewsByCandidate,
       )) {
-        // Get candidate details
         const candidateData = await this.supabase
           .from("candidates")
           .select("full_name, user_id, candidate_id, email")
@@ -513,9 +593,7 @@ class InterviewProcessController {
             .eq("email", candidateEmail)
             .single();
 
-          if (!userError && userResult) {
-            candidateUserId = userResult.id;
-          }
+          if (!userError && userResult) candidateUserId = userResult.id;
         }
 
         if (!candidateUserId) {
@@ -560,7 +638,7 @@ class InterviewProcessController {
           const scheduled_slot = await this.findAndScheduleInterview(
             interview,
             candidateAvailability,
-            candidateName,
+            candidateUserId,
             interviewerLoadMap,
           );
 
@@ -603,7 +681,7 @@ class InterviewProcessController {
         message: successMessage,
       };
     } catch (error) {
-      console.error("[autoSchedule] Error during auto-scheduling:", error);
+      console.error(error);
       return {
         success: false,
         scheduled: 0,
@@ -631,16 +709,11 @@ class InterviewProcessController {
       .eq("process_id", processId);
 
     if (roundsError) {
-      console.error(
-        "[getUnscheduledInterviews] Error fetching rounds:",
-        roundsError,
-      );
+      console.error(roundsError);
       return [];
     }
 
-    if (!roundsData || roundsData.length === 0) {
-      return [];
-    }
+    if (!roundsData || roundsData.length === 0) return [];
 
     const roundIds = roundsData.map((r) => r.process_round_id);
 
@@ -654,13 +727,11 @@ class InterviewProcessController {
       .is("scheduled_start", null);
 
     if (error) {
-      console.error("[getUnscheduledInterviews] Error:", error);
+      console.error(error);
       return [];
     }
 
-    if (!data) {
-      return [];
-    }
+    if (!data) return [];
 
     // Filter to only interviews for this process and flatten nested structure
     const flattened: Array<{
@@ -678,9 +749,7 @@ class InterviewProcessController {
       const iv = interview as any;
       // Get the category from nested structure
       const category = iv.process_rounds?.interview_categories;
-      if (!category) {
-        continue;
-      }
+      if (!category) continue;
 
       flattened.push({
         interview_id: iv.interview_id,
@@ -702,9 +771,7 @@ class InterviewProcessController {
     const records =
       await availabilityController.fetchAvailabilityByUserId(userId);
 
-    if (!records || records.length === 0) {
-      return [];
-    }
+    if (!records || records.length === 0) return [];
 
     // Transform records using the same method the Availability component uses
     const timeSlots =
@@ -749,20 +816,21 @@ class InterviewProcessController {
 
   private async getInterviewersForCategory(
     categoryId: string,
-  ): Promise<string[]> {
+  ): Promise<Array<{ interviewer_id: string; user_id: string }>> {
     const { data, error } = await this.supabase
       .from("interviewers")
-      .select("user_id")
+      .select("interviewer_id, user_id")
       .eq("category_id", categoryId);
 
     if (error) {
-      console.error("[getInterviewersForCategory] Error:", error);
+      console.error(error);
       return [];
     }
 
-    const userIds = (data || []).map((row) => row.user_id);
-
-    return userIds;
+    return (data || []).map((row) => ({
+      interviewer_id: row.interviewer_id,
+      user_id: row.user_id,
+    }));
   }
 
   private async findAndScheduleInterview(
@@ -776,26 +844,24 @@ class InterviewProcessController {
       process_round_id: string;
     },
     candidateAvailability: Array<{ start: Date; end: Date }>,
-    candidateName: string,
+    candidateUserId: string,
     interviewerLoadMap: Record<string, number>,
   ): Promise<boolean> {
     // Get available interviewers for this category
-    const interviewerIds = await this.getInterviewersForCategory(
+    const interviewers = await this.getInterviewersForCategory(
       interview.category_id,
     );
 
     // Sort interviewers by current load (least loaded first)
-    const sortedInterviewerIds = interviewerIds.sort((a, b) => {
-      const loadA = interviewerLoadMap[a] ?? 0;
-      const loadB = interviewerLoadMap[b] ?? 0;
+    const sortedInterviewers = interviewers.sort((a, b) => {
+      const loadA = interviewerLoadMap[a.interviewer_id] ?? 0;
+      const loadB = interviewerLoadMap[b.interviewer_id] ?? 0;
       return loadA - loadB;
     });
 
     // Try to find a common time slot with an interviewer (starting with least loaded)
-    for (const interviewerId of sortedInterviewerIds) {
-      const interviewerAvailability =
-        await this.getAvailabilitySlots(interviewerId);
-
+    for (const { interviewer_id, user_id } of sortedInterviewers) {
+      const interviewerAvailability = await this.getAvailabilitySlots(user_id);
       if (interviewerAvailability.length === 0) continue;
 
       // Find a matching time slot
@@ -806,24 +872,36 @@ class InterviewProcessController {
       );
 
       if (matchedSlot) {
-        // Schedule the interview
-        const { error } = await this.supabase
+        const { error } = await this.supabase // Schedule the interview bam!
           .from("interviews")
           .update({
             scheduled_start: matchedSlot.start.toISOString(),
             scheduled_end: matchedSlot.end.toISOString(),
-            interviewer_id: interviewerId,
-            status: "scheduled",
+            interviewer_id: interviewer_id,
+            status: "confirmed",
           })
-          .eq("interview_id", interview.interview_id);
+          .eq("interview_id", interview.interview_id)
+          .select();
 
-        if (!error) {
-          // Update load tracking
-          interviewerLoadMap[interviewerId] =
-            (interviewerLoadMap[interviewerId] ?? 0) + 1;
-          return true;
+        if (error) {
+          console.error(error);
         } else {
-          console.error("Error scheduling interview:", error);
+          // Remove the booked slot from both candidate and interviewer availability
+          await this.removeBookedSlotFromAvailability(
+            candidateUserId,
+            matchedSlot.start,
+            matchedSlot.end,
+          );
+          await this.removeBookedSlotFromAvailability(
+            user_id,
+            matchedSlot.start,
+            matchedSlot.end,
+          );
+
+          // Update load tracking
+          interviewerLoadMap[interviewer_id] =
+            (interviewerLoadMap[interviewer_id] ?? 0) + 1;
+          return true;
         }
       }
     }
@@ -853,8 +931,8 @@ class InterviewProcessController {
         const overlapDurationMs = overlapEnd.getTime() - overlapStart.getTime();
 
         if (overlapDurationMs >= durationMs) {
-          // Found a valid time slot
           return {
+            // valid time slot has been found
             start: overlapStart,
             end: new Date(overlapStart.getTime() + durationMs),
           };
@@ -863,6 +941,96 @@ class InterviewProcessController {
     }
 
     return null;
+  }
+
+  private async removeBookedSlotFromAvailability(
+    userId: string,
+    bookedStart: Date,
+    bookedEnd: Date,
+  ): Promise<void> {
+    try {
+      const records =
+        await availabilityController.fetchAvailabilityByUserId(userId);
+
+      if (!records || records.length === 0) return;
+
+      const bookedStartTime = bookedStart.getTime();
+      const bookedEndTime = bookedEnd.getTime();
+
+      // Process each availability record
+      for (const record of records) {
+        const recordStart = new Date(record.start_time).getTime();
+        const recordEnd = new Date(record.end_time).getTime();
+
+        // Check if there's an overlap
+        const overlapStart = Math.max(bookedStartTime, recordStart);
+        const overlapEnd = Math.min(bookedEndTime, recordEnd);
+
+        if (overlapStart >= overlapEnd) continue; // No overlap, js skip
+
+        // Case 1: Booked time completely covers this availability slot - DELETE it
+        if (bookedStartTime <= recordStart && bookedEndTime >= recordEnd) {
+          const { error: deleteError } = await this.supabase
+            .from("availability")
+            .delete()
+            .eq("availability_id", record.availability_id);
+
+          if (deleteError) console.error(deleteError);
+        }
+        // Case 2: Booked time is IN THE MIDDLE -- SPLIT into before and after
+        else if (bookedStartTime > recordStart && bookedEndTime < recordEnd) {
+          // Update the original record to END before the booking
+          const newEndTime = new Date(bookedStartTime).toISOString();
+
+          const { error: updateError } = await this.supabase
+            .from("availability")
+            .update({ end_time: newEndTime })
+            .eq("availability_id", record.availability_id);
+
+          if (updateError) console.error(updateError);
+          // Create NEW record for time AFTER the booking
+          const newStartTime = new Date(bookedEndTime).toISOString();
+
+          const { error: insertError } = await this.supabase
+            .from("availability")
+            .insert([
+              {
+                user_id: userId,
+                start_time: newStartTime,
+                end_time: record.end_time,
+              },
+            ]);
+
+          if (insertError) console.error(insertError);
+        }
+        // Case 3: Booked time covers the START of availability - update start time
+        else if (bookedStartTime <= recordStart && bookedEndTime < recordEnd) {
+          const newStartTime = new Date(bookedEndTime).toISOString();
+
+          const { error: updateError } = await this.supabase
+            .from("availability")
+            .update({ start_time: newStartTime })
+            .eq("availability_id", record.availability_id);
+
+          if (updateError) console.error(updateError);
+        }
+        // Case 4: Booked time covers the END of availability - update end time
+        else if (bookedStartTime > recordStart && bookedEndTime >= recordEnd) {
+          const newEndTime = new Date(bookedStartTime).toISOString();
+
+          const { error: updateError } = await this.supabase
+            .from("availability")
+            .update({ end_time: newEndTime })
+            .eq("availability_id", record.availability_id);
+
+          if (updateError) {
+            console.error(updateError);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
