@@ -171,7 +171,7 @@ class InterviewController {
         })}`,
         interviewerName: role === "candidate" ? interviewerName : candidateName,
         candidateName: candidateName,
-        location: item.location ?? "Virtual - Zoom Link",
+        location: item.location ?? "To be updated by interviewer",
         status: item.status,
         full_name: interviewerName,
         interviewer_confirmation: item.interviewer_confirmation ?? false,
