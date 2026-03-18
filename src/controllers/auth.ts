@@ -39,38 +39,9 @@ class AuthController {
     return user?.user_id || null;
   }
 
-  async getCurrentUserEmail(): Promise<string | null> {
-    const user = await this.getCurrentUser();
-    return user?.email || null;
-  }
-
   async getFullName(): Promise<string | null> {
     const user = await this.getCurrentUser();
     return user?.full_name || null;
-  }
-
-  async getCurrentSession(): Promise<Session | null> {
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error("Error getting current session:", error.message);
-        return null;
-      }
-
-      return session;
-    } catch (error) {
-      console.error("Unexpected error getting current session:", error);
-      return null;
-    }
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    const user = await this.getCurrentUser();
-    return user !== null;
   }
 
   async signOut(): Promise<void> {
@@ -83,28 +54,6 @@ class AuthController {
     } catch (error) {
       console.error("Unexpected error signing out:", error);
       throw error;
-    }
-  }
-
-  async getUserById(userId: string): Promise<User | null> {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select(
-          "user_id, email, full_name, coordinator, interviewer, candidate",
-        )
-        .eq("user_id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching user by ID:", error.message);
-        return null;
-      }
-
-      return data || null;
-    } catch (error) {
-      console.error("Unexpected error getting user by ID:", error);
-      return null;
     }
   }
 

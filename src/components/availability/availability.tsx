@@ -185,25 +185,40 @@ const Availability = () => {
     setSaving(true);
 
     try {
+      console.log(`[Availability.tsx] Starting save for user: ${userId}`);
+      console.log(`[Availability.tsx] Total time blocks: ${timeBlocks.length}`);
+
       // Convert timeBlocks to the format expected by availabilityController
       const formattedBlocks = timeBlocks.map((block) => {
         // Convert 24-hour time to 12-hour format with AM/PM
         const startTime = convertTo12Hour(block.startTime);
         const endTime = convertTo12Hour(block.endTime);
 
-        return {
+        const formatted = {
           day: block.date, // YYYY-MM-DD
           startTime, // 9:00 AM
           endTime, // 11:00 AM
         };
+        console.log(
+          `[Availability.tsx] Block: ${formatted.day} ${formatted.startTime} - ${formatted.endTime}`,
+        );
+        return formatted;
       });
 
+      console.log(
+        `[Availability.tsx] Formatted blocks before save:`,
+        formattedBlocks,
+      );
       const success =
         await availabilityController.saveAvailability(formattedBlocks);
 
       if (success) {
+        console.log(
+          `[Availability.tsx] ✓ Availability saved successfully for user ${userId}`,
+        );
         alert("Availability saved successfully!");
       } else {
+        console.error(`[Availability.tsx] ✗ Save returned false`);
         alert("Failed to save availability");
       }
     } catch (error) {

@@ -261,7 +261,6 @@ const CreateProcess: React.FC = () => {
         categoryMap,
       );
 
-      // Navigate to dashboard
       router.push(`/coordinator/process/dashboard?org=${orgId}`);
     } catch (error) {
       console.error("Error completing interview process setup:", error);
