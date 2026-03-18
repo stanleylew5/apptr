@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Organization, OrganizationMemberRow } from "@/types/types";
+import { Organization, OrganizationMemberRow } from "@/types/organization";
 
 class OrganizationController {
   private supabase: SupabaseClient;
@@ -85,54 +85,6 @@ class OrganizationController {
     return data;
   }
 
-  async getOrganizationName(organizationId: string): Promise<string> {
-    const { data, error } = await this.supabase
-      .from("organizations")
-      .select("organization_name")
-      .eq("organization_id", organizationId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching organization name:", error);
-      return "Process";
-    }
-
-    return data?.organization_name || "Process";
-  }
-
-  async deleteOrganization(
-    organizationId: string,
-    userId: string,
-  ): Promise<boolean> {
-    const { data: org, error: fetchError } = await this.supabase
-      .from("organizations")
-      .select("created_by")
-      .eq("organization_id", organizationId)
-      .single();
-
-    if (fetchError || !org) {
-      console.error("Error fetching organization:", fetchError);
-      return false;
-    }
-
-    if (org.created_by !== userId) {
-      console.error("User is not authorized to delete this organization");
-      return false;
-    }
-
-    const { error: deleteError } = await this.supabase
-      .from("organizations")
-      .delete()
-      .eq("organization_id", organizationId);
-
-    if (deleteError) {
-      console.error("Error deleting organization:", deleteError);
-      return false;
-    }
-
-    return true;
-  }
-
   async getOrganizationMembers(organizationId: string): Promise<
     Array<{
       user_id: string;
@@ -142,7 +94,7 @@ class OrganizationController {
   > {
     const { data, error } = await this.supabase
       .from("organization_members")
-      .select("user_id, users(full_name), role")
+      .select("organization_id, user_id, users(full_name), role")
       .eq("organization_id", organizationId);
 
     if (error) {
@@ -153,6 +105,7 @@ class OrganizationController {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (data ?? []).map((member: any) => ({
       user_id: member.user_id,
+      organization_id: member.organization_id,
       full_name: member.users?.full_name || "Unknown",
       role: member.role || undefined,
     }));

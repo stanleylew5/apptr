@@ -191,11 +191,12 @@ const Availability = () => {
         const startTime = convertTo12Hour(block.startTime);
         const endTime = convertTo12Hour(block.endTime);
 
-        return {
+        const formatted = {
           day: block.date, // YYYY-MM-DD
           startTime, // 9:00 AM
           endTime, // 11:00 AM
         };
+        return formatted;
       });
 
       const success =

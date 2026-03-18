@@ -1,12 +1,3 @@
-export interface User {
-  user_id: string;
-  email: string;
-  full_name: string;
-  coordinator?: boolean;
-  interviewer?: boolean;
-  candidate?: boolean;
-}
-
 export interface RawInterview {
   interview_id: string;
   candidate_id: string;
@@ -43,16 +34,13 @@ export interface Interview {
   process_round_id?: string;
 }
 
-export interface Organization {
-  organization_id: string;
-  organization_name: string;
-  created_by: string;
+export interface ScheduledInterview {
+  interview_id: string;
+  candidate_name: string;
+  interviewer_name: string;
+  category_name: string;
+  round: number;
+  scheduled_start: string;
+  scheduled_end: string;
+  status: string;
 }
-
-export type OrganizationMemberRow = {
-  organizations: {
-    organization_id: string;
-    organization_name: string;
-    created_by: string;
-  } | null;
-};
