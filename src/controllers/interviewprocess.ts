@@ -128,6 +128,7 @@ class InterviewProcessController {
         status,
         scheduled_start,
         scheduled_end,
+        location,
         process_rounds(round, interview_categories(category_name)),
         candidates(full_name),
         interviewers(users(full_name))
@@ -167,6 +168,7 @@ class InterviewProcessController {
         scheduled_start: iv.scheduled_start,
         scheduled_end: iv.scheduled_end,
         status: iv.status,
+        location: iv.location || "To be updated by interviewer soon",
       });
     }
 

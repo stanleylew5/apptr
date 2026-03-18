@@ -9,6 +9,7 @@ export interface RawInterview {
   scheduled_start: string;
   scheduled_end: string;
   status: string;
+  location: string | null;
 
   candidate_name: string | null;
   interviewer_name: string | null;
@@ -43,4 +44,5 @@ export interface ScheduledInterview {
   scheduled_start: string;
   scheduled_end: string;
   status: string;
+  location: string | null;
 }

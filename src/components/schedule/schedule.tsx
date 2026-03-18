@@ -13,6 +13,10 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
   const [loadingInterviewId, setLoadingInterviewId] = useState<string | null>(
     null,
   );
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(
+    null,
+  );
+  const [newLocation, setNewLocation] = useState<string>("");
 
   // Helper function to check if user has confirmed based on their role
   const hasUserConfirmed = (interview: Interview): boolean => {
@@ -100,6 +104,30 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
     }
   };
 
+  const handleUpdateLocation = async (interviewId: string) => {
+    if (!newLocation.trim()) {
+      console.error("Location cannot be empty");
+      return;
+    }
+
+    try {
+      setLoadingInterviewId(interviewId);
+      await interviewController.updateInterviewLocation(
+        interviewId,
+        newLocation,
+      );
+
+      // Refresh the interviews list and close modal
+      await fetchInterviews(role);
+      setEditingLocationId(null);
+      setNewLocation("");
+    } catch (error) {
+      console.error("Error updating location:", error);
+    } finally {
+      setLoadingInterviewId(null);
+    }
+  };
+
   return (
     <>
       {awaitingUserConfirmation.length > 0 && (
@@ -180,6 +208,18 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
                   <div className="mt-2 text-sm text-gray-500">
                     {getWaitingFor(interview)}
                   </div>
+
+                  {role === "interviewer" && (
+                    <button
+                      onClick={() => {
+                        setEditingLocationId(interview.id);
+                        setNewLocation(interview.location);
+                      }}
+                      className="mt-3 rounded-lg bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                    >
+                      Edit Location
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -208,12 +248,55 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
                     : `Candidate: ${interview.candidateName}`,
                   interview.location,
                 ]}
-                //TODO: add real functionality for this button
                 onAddCalendar={() => console.log("Add to calendar")}
+                onEditLocation={() => {
+                  setEditingLocationId(interview.id);
+                  setNewLocation(interview.location);
+                }}
+                isInterviewer={role === "interviewer"}
               />
             ))}
           </div>
         </>
+      )}
+
+      {editingLocationId && (
+        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-bold">
+              Update Interview Location
+            </h3>
+            <input
+              type="text"
+              value={newLocation}
+              onChange={(e) => setNewLocation(e.target.value)}
+              placeholder="Enter new location"
+              className="mb-4 w-full rounded border border-gray-300 px-3 py-2"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  handleUpdateLocation(editingLocationId);
+                }}
+                disabled={loadingInterviewId === editingLocationId}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loadingInterviewId === editingLocationId
+                  ? "Saving..."
+                  : "Save"}
+              </button>
+              <button
+                onClick={() => {
+                  setEditingLocationId(null);
+                  setNewLocation("");
+                }}
+                className="rounded-lg bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

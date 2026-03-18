@@ -120,8 +120,11 @@ class InterviewController {
           interview_id,
           status,
           scheduled_start,
-          scheduled_end,          interviewer_confirmation,
-          candidate_confirmation,          candidates(full_name),
+          scheduled_end,
+          location,
+          interviewer_confirmation,
+          candidate_confirmation,
+          candidates(full_name),
           interviewers(users(full_name))
         `,
         )
@@ -168,7 +171,7 @@ class InterviewController {
         })}`,
         interviewerName: role === "candidate" ? interviewerName : candidateName,
         candidateName: candidateName,
-        location: "Virtual - Zoom Link",
+        location: item.location ?? "Virtual - Zoom Link",
         status: item.status,
         full_name: interviewerName,
         interviewer_confirmation: item.interviewer_confirmation ?? false,
@@ -242,6 +245,37 @@ class InterviewController {
       return true;
     } catch (error) {
       console.error(`[confirmInterview] Unexpected error:`, error);
+      throw error;
+    }
+  }
+
+  // Update interview location
+  async updateInterviewLocation(
+    interviewId: string,
+    newLocation: string,
+  ): Promise<boolean> {
+    try {
+      console.log(
+        `[updateInterviewLocation] Updating location for interview ${interviewId} to: ${newLocation}`,
+      );
+
+      const { error } = await this.supabase
+        .from("interviews")
+        .update({ location: newLocation })
+        .eq("interview_id", interviewId);
+
+      if (error) {
+        console.error(
+          `[updateInterviewLocation] Error updating location:`,
+          error,
+        );
+        throw error;
+      }
+
+      console.log(`[updateInterviewLocation] Location updated successfully`);
+      return true;
+    } catch (error) {
+      console.error(`[updateInterviewLocation] Unexpected error:`, error);
       throw error;
     }
   }
