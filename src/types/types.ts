@@ -22,6 +22,8 @@ export interface RawInterview {
   candidate_name: string | null;
   interviewer_name: string | null;
 
+  category_name: string | null;
+
   interviewer_confirmation: boolean | null;
   candidate_confirmation: boolean | null;
 }
