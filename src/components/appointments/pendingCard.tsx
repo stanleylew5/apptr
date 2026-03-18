@@ -4,7 +4,8 @@ type PendingApptCardProps = {
   title: string;
   infoItems: string[];
   onConfirm: () => void;
-  onReschedule: () => void;
+  isLoading?: boolean;
+  waitingFor?: string;
 };
 
 type InfoRowsProps = {
@@ -32,7 +33,8 @@ export function PendingApptCard({
   title,
   infoItems,
   onConfirm,
-  onReschedule,
+  isLoading = false,
+  waitingFor = "Waiting for: Both",
 }: PendingApptCardProps) {
   return (
     <div className="mx-auto flex items-center justify-between gap-5 rounded-md border border-orange-300 p-2">
@@ -45,21 +47,17 @@ export function PendingApptCard({
         </div>
 
         <InfoRows items={infoItems} />
+
+        <div className="mt-2 text-sm text-gray-500">{waitingFor}</div>
       </div>
 
       <div className="flex max-w-6xl flex-col gap-3 font-medium">
         <button
           onClick={onConfirm}
-          className="gap-2 rounded-lg bg-blue-800 px-2 text-white"
+          disabled={isLoading}
+          className="gap-2 rounded-lg bg-blue-800 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Confirm
-        </button>
-
-        <button
-          onClick={onReschedule}
-          className="rounded-lg border border-gray-300 px-2"
-        >
-          Reschedule
+          {isLoading ? "Confirming..." : "Confirm"}
         </button>
       </div>
     </div>

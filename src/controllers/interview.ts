@@ -120,8 +120,8 @@ class InterviewController {
           interview_id,
           status,
           scheduled_start,
-          scheduled_end,
-          candidates(full_name),
+          scheduled_end,          interviewer_confirmation,
+          candidate_confirmation,          candidates(full_name),
           interviewers(users(full_name))
         `,
         )
@@ -178,6 +178,70 @@ class InterviewController {
       return interview;
     } catch (error) {
       console.error(`[mapRawInterview] Error mapping interview:`, error, item);
+      throw error;
+    }
+  }
+
+  // Confirm an interview for a user
+  async confirmInterview(interviewId: string, role: string): Promise<boolean> {
+    try {
+      console.log(
+        `[confirmInterview] Confirming interview ${interviewId} for role: ${role}`,
+      );
+
+      const updateData: Record<string, boolean> = {};
+
+      if (role === "candidate") {
+        updateData.candidate_confirmation = true;
+      } else if (role === "interviewer") {
+        updateData.interviewer_confirmation = true;
+      }
+
+      const { error, data } = await this.supabase
+        .from("interviews")
+        .update(updateData)
+        .eq("interview_id", interviewId)
+        .select("status, interviewer_confirmation, candidate_confirmation")
+        .single();
+
+      if (error) {
+        console.error(`[confirmInterview] Error confirming interview:`, error);
+        throw error;
+      }
+
+      console.log(
+        `[confirmInterview] Updated confirmation for interview ${interviewId}:`,
+        data,
+      );
+
+      // If both parties confirmed, update status to confirmed (ONLY for this interview)
+      if (data?.interviewer_confirmation && data?.candidate_confirmation) {
+        console.log(
+          `[confirmInterview] Both parties confirmed for ${interviewId}, updating status...`,
+        );
+
+        const { error: statusError } = await this.supabase
+          .from("interviews")
+          .update({ status: "confirmed" })
+          .eq("interview_id", interviewId)
+          .single();
+
+        if (statusError) {
+          console.error(
+            `[confirmInterview] Error updating status:`,
+            statusError,
+          );
+          throw statusError;
+        }
+
+        console.log(
+          `[confirmInterview] Status updated to confirmed for ${interviewId}`,
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`[confirmInterview] Unexpected error:`, error);
       throw error;
     }
   }
