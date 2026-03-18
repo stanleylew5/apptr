@@ -32,7 +32,7 @@ export function InfoRows({ items }: InfoRowsProps) {
 export function ConfirmedApptCard({
   title,
   infoItems,
-  onAddCalendar,
+  // onAddCalendar,
   onEditLocation,
   isInterviewer = false,
 }: ConfirmedApptCardProps) {
@@ -50,12 +50,12 @@ export function ConfirmedApptCard({
       </div>
 
       <div className="flex max-w-6xl flex-col gap-3 font-medium">
-        <button
+        {/* <button
           onClick={onAddCalendar}
           className="rounded-lg bg-blue-600 px-2 text-white hover:bg-blue-700"
         >
           Add to Calendar
-        </button>
+        </button> */}
         {isInterviewer && onEditLocation && (
           <button
             onClick={onEditLocation}
