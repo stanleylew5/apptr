@@ -1,5 +1,5 @@
 "use client";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
 
 interface OrganizationCardProps {
   organization: Organization;

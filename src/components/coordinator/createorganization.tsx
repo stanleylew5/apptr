@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
-import { Organization } from "@/types/types";
+import { Organization } from "@/types/organization";
 
 interface CreateOrganizationProps {
   isFirstOrganization: boolean;

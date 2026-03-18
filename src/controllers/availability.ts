@@ -47,7 +47,7 @@ class AvailabilityController {
 
       return data || [];
     } catch (error) {
-      console.error("Unexpected error fetching availability:", error);
+      console.error("[fetchUserAvailability] Unexpected error:", error);
       return [];
     }
   }
@@ -69,7 +69,10 @@ class AvailabilityController {
 
       return data || [];
     } catch (error) {
-      console.error("Unexpected error fetching availability:", error);
+      console.error(
+        `[fetchAvailabilityByUserId] Unexpected error for user ${userId}:`,
+        error,
+      );
       return [];
     }
   }
@@ -110,12 +113,6 @@ class AvailabilityController {
     return this.transformToComponentFormat(records);
   }
 
-  /* Get availability for a specific user in component format */
-  async getAvailabilityForComponent(userId: string): Promise<TimeSlot[]> {
-    const records = await this.fetchAvailabilityByUserId(userId);
-    return this.transformToComponentFormat(records);
-  }
-
   /* Transform component format back to database format */
   transformToDatabaseFormat(
     timeSlots: TimeSlot[],
@@ -151,9 +148,24 @@ class AvailabilityController {
       hours = 0;
     }
 
-    // Create date at UTC midnight, then set UTC time to avoid timezone offset issues
+    // Calculate timezone offset for this specific date (accounts for daylight saving)
+    const testDate = new Date(dateStr + "T12:00:00");
+    const utcHour = testDate.getUTCHours();
+
+    // Get the local hour using toLocaleString in America/Los_Angeles timezone
+    const localString = testDate.toLocaleString("en-US", {
+      timeZone: "America/Los_Angeles",
+      hour: "numeric",
+      hour12: false,
+    });
+    const localHour = parseInt(localString);
+
+    // Calculate offset: positive = ahead of UTC
+    const offset = utcHour - localHour;
+
+    // Create date at UTC midnight, then set UTC time adjusted by timezone offset
     const date = new Date(dateStr + "T00:00:00Z");
-    date.setUTCHours(hours, minutes, 0, 0);
+    date.setUTCHours(hours + offset, minutes, 0, 0);
 
     return date.toISOString();
   }
@@ -196,7 +208,7 @@ class AvailabilityController {
 
       return true;
     } catch (error) {
-      console.error("Unexpected error saving availability:", error);
+      console.error("[saveAvailability] Unexpected error:", error);
       return false;
     }
   }
@@ -224,32 +236,6 @@ class AvailabilityController {
       return true;
     } catch (error) {
       console.error("Unexpected error deleting availability:", error);
-      return false;
-    }
-  }
-
-  async deleteAllAvailability(): Promise<boolean> {
-    try {
-      const userId = await authController.getCurrentUserId();
-
-      if (!userId) {
-        console.error("User not authenticated");
-        return false;
-      }
-
-      const { error } = await this.supabase
-        .from("availability")
-        .delete()
-        .eq("user_id", userId);
-
-      if (error) {
-        console.error("Error deleting all availability:", error.message);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Unexpected error deleting all availability:", error);
       return false;
     }
   }
