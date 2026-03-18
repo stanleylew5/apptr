@@ -21,6 +21,19 @@ const ProcessDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const refreshProcesses = async () => {
+    if (!orgId) return;
+    try {
+      const interviewProcesses =
+        await interviewProcessController.getProcessesWithRoundsByOrganization(
+          orgId,
+        );
+      setProcesses(interviewProcesses);
+    } catch (err) {
+      console.error("[ProcessDashboard] Error refreshing processes:", err);
+    }
+  };
+
   useEffect(() => {
     if (!orgId) {
       return;
@@ -136,6 +149,7 @@ const ProcessDashboard = () => {
                   <InterviewProcessCard
                     key={process.process_id}
                     process={process}
+                    onScheduleComplete={refreshProcesses}
                   />
                 ))}
               </div>

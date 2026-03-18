@@ -6,6 +6,7 @@ import { InterviewProcess } from "@/types/process";
 
 interface InterviewProcessCardProps {
   process: InterviewProcess;
+  onScheduleComplete?: () => Promise<void> | void;
 }
 
 interface SchedulingResult {
@@ -17,6 +18,7 @@ interface SchedulingResult {
 
 export const InterviewProcessCard = ({
   process,
+  onScheduleComplete,
 }: InterviewProcessCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +69,11 @@ export const InterviewProcessCard = ({
         (i) => i.status !== "scheduled",
       ).length;
       setUnscheduledCount(unscheduled);
+
+      // Call parent callback to refresh the process list
+      if (onScheduleComplete) {
+        await onScheduleComplete();
+      }
     } catch (error) {
       console.error("[autoSchedule] Error:", error);
       setSchedulingResult({

@@ -673,7 +673,7 @@ const CreateProcess: React.FC = () => {
               onClick={handleComplete}
               className="flex items-center gap-2 rounded-md bg-green-600 px-6 py-2 text-white hover:bg-green-700"
             >
-              Schedule Interviews
+              Create Process
               <ArrowRight className="h-4 w-4" />
             </button>
           )}
