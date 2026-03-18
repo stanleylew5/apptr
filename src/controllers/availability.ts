@@ -85,13 +85,40 @@ class AvailabilityController {
 
   /**
    * Convert database timestamptz to time string ("9:00 AM")
+   * Converts from UTC back to America/Los_Angeles timezone
    */
   private extractTime(timestamp: string): string {
     const date = new Date(timestamp);
-    let hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const period = hours >= 12 ? "PM" : "AM";
 
+    // Get the date part in UTC
+    const utcYear = date.getUTCFullYear();
+    const utcMonth = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const utcDay = String(date.getUTCDate()).padStart(2, "0");
+    const dateStr = `${utcYear}-${utcMonth}-${utcDay}`;
+
+    // Calculate the timezone offset for this specific date
+    const testDate = new Date(dateStr + "T12:00:00");
+    const utcHour = testDate.getUTCHours();
+    const localString = testDate.toLocaleString("en-US", {
+      timeZone: "America/Los_Angeles",
+      hour: "numeric",
+      hour12: false,
+    });
+    const localHour = parseInt(localString);
+    const offset = utcHour - localHour;
+
+    // Subtract the offset from UTC hours to get local time
+    let hours = date.getUTCHours() - offset;
+    const minutes = date.getUTCMinutes();
+
+    // Handle day wrapping
+    if (hours < 0) {
+      hours += 24;
+    } else if (hours >= 24) {
+      hours -= 24;
+    }
+
+    const period = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
     const minuteStr = minutes.toString().padStart(2, "0");
 

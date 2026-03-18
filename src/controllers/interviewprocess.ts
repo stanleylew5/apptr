@@ -775,43 +775,12 @@ class InterviewProcessController {
 
     if (!records || records.length === 0) return [];
 
-    // Transform records using the same method the Availability component uses
-    const timeSlots =
-      availabilityController.transformToComponentFormat(records);
-
-    // Convert TimeSlots to Date objects for scheduling
-    // Using a simple helper to parse 12-hour format back to 24-hour
-    const parseTime = (timeStr: string): number => {
-      const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (!match) return 0;
-      let hours = parseInt(match[1]);
-      const minutes = parseInt(match[2]);
-      const period = match[3].toUpperCase();
-      if (period === "PM" && hours !== 12) hours += 12;
-      if (period === "AM" && hours === 12) hours = 0;
-      return hours + minutes / 60;
-    };
-
-    const slots = timeSlots.map((slot) => {
-      const startHours = parseTime(slot.startTime);
-      const endHours = parseTime(slot.endTime);
-
-      const startTime = new Date(slot.day + "T00:00:00Z");
-      startTime.setUTCHours(
-        Math.floor(startHours),
-        (startHours % 1) * 60,
-        0,
-        0,
-      );
-
-      const endTime = new Date(slot.day + "T00:00:00Z");
-      endTime.setUTCHours(Math.floor(endHours), (endHours % 1) * 60, 0, 0);
-
-      return {
-        start: startTime,
-        end: endTime,
-      };
-    });
+    // Convert database timestamps directly to Date objects for scheduling
+    // The database already stores these as UTC timestamps with timezone offset applied
+    const slots = records.map((record) => ({
+      start: new Date(record.start_time),
+      end: new Date(record.end_time),
+    }));
 
     return slots;
   }
