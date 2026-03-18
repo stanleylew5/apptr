@@ -82,7 +82,7 @@ const Dashboard = () => {
       </div>
 
       {view === "availability" && <Availability />}
-      {view === "schedule" && <Schedule />}
+      {view === "schedule" && <Schedule forceRole="candidate" />}
     </div>
   );
 };

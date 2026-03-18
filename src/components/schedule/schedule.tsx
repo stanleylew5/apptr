@@ -7,10 +7,9 @@ import { interviewController } from "@/controllers/interview";
 import { Interview } from "@/types/interview";
 import { authController } from "@/controllers/auth";
 
-export function Schedule() {
+export function Schedule({ forceRole }: { forceRole?: string | null }) {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [role, setRole] = useState<string>("");
-
   // Filter interviews based on confirmation status from both parties
   const pending = interviews.filter(
     (i) => !(i.interviewer_confirmation && i.candidate_confirmation),
@@ -24,11 +23,14 @@ export function Schedule() {
       const user = await authController.getCurrentUser();
       if (!user) return;
 
-      const userRole = await authController.getUserPrimaryRole(user);
+      let userRole = forceRole;
+      if (!userRole) {
+        userRole = await authController.getUserPrimaryRole(user);
+      }
       if (!userRole) return;
       setRole(userRole);
 
-      const data = await interviewController.getCandidateInterviews(
+      const data = await interviewController.getUserInterviews(
         user.user_id,
         userRole,
       );
@@ -36,7 +38,7 @@ export function Schedule() {
     };
 
     fetchInterviews();
-  }, []);
+  }, [forceRole]);
 
   return (
     <>

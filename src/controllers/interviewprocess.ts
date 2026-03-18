@@ -134,7 +134,7 @@ class InterviewProcessController {
       `,
       )
       .in("process_round_id", roundIds)
-      .eq("status", "confirmed")
+      .in("status", ["confirmed", "pending"])
       .not("scheduled_start", "is", null)
       .not("scheduled_end", "is", null)
       .order("scheduled_start", { ascending: true });
