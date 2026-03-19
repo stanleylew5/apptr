@@ -9,6 +9,11 @@ const SignIn = () => {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/welcome`,
+        scopes: "https://www.googleapis.com/auth/calendar",
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
     });
 

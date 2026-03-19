@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Interview } from "@/types/interview";
+import { createCalendarEvent } from "@/lib/googleCalendar";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -223,23 +224,52 @@ class InterviewController {
           `[confirmInterview] Both parties confirmed for ${interviewId}, updating status...`,
         );
 
-        const { error: statusError } = await this.supabase
+        // const { error: statusError } = await this.supabase
+        await this.supabase
           .from("interviews")
           .update({ status: "confirmed" })
-          .eq("interview_id", interviewId)
-          .single();
+          .eq("interview_id", interviewId);
+          // .single();
 
-        if (statusError) {
-          console.error(
-            `[confirmInterview] Error updating status:`,
-            statusError,
-          );
-          throw statusError;
-        }
+        // if (statusError) {
+        //   console.error(
+        //     `[confirmInterview] Error updating status:`,
+        //     statusError,
+        //   );
+        //   throw statusError;
+        // }
 
         console.log(
           `[confirmInterview] Status updated to confirmed for ${interviewId}`,
         );
+        if (role === "interviewer") {
+          const { data: fullInterview } = await this.supabase
+            .from("interviews")
+            .select(`
+              *,
+              candidates(email)
+            `)
+            .eq("interview_id", interviewId)
+            .single();
+
+          if (fullInterview && !fullInterview.calendar_event_created) {
+            await createCalendarEvent({
+              scheduled_start: fullInterview.scheduled_start,
+              scheduled_end: fullInterview.scheduled_end,
+              location: fullInterview.location,
+              candidate: {
+                email: fullInterview.candidates?.email,
+              },
+            });
+
+            await this.supabase
+              .from("interviews")
+              .update({ calendar_event_created: true })
+              .eq("interview_id", interviewId);
+
+            console.log(`[confirmInterview] Calendar event created`);
+          }
+        }        
       }
 
       return true;
