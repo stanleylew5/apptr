@@ -229,7 +229,7 @@ class InterviewController {
           .from("interviews")
           .update({ status: "confirmed" })
           .eq("interview_id", interviewId);
-          // .single();
+        // .single();
 
         // if (statusError) {
         //   console.error(
@@ -245,10 +245,12 @@ class InterviewController {
         if (role === "interviewer") {
           const { data: fullInterview } = await this.supabase
             .from("interviews")
-            .select(`
+            .select(
+              `
               *,
               candidates(email)
-            `)
+            `,
+            )
             .eq("interview_id", interviewId)
             .single();
 
@@ -269,7 +271,7 @@ class InterviewController {
 
             console.log(`[confirmInterview] Calendar event created`);
           }
-        }        
+        }
       }
 
       return true;

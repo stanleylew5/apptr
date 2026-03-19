@@ -1,7 +1,14 @@
 import { supabase } from "./supabase";
 
-export async function createCalendarEvent(interview: any) {
-  const { data: { session } } = await supabase.auth.getSession();
+export async function createCalendarEvent(interview: {
+  scheduled_start: string;
+  scheduled_end: string;
+  location?: string;
+  candidate: { email: string };
+}) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session?.provider_token) {
     throw new Error("No Google token found");
@@ -27,11 +34,9 @@ export async function createCalendarEvent(interview: any) {
         end: {
           dateTime: interview.scheduled_end,
         },
-        attendees: [
-          { email: interview.candidate.email },
-        ],
+        attendees: [{ email: interview.candidate.email }],
       }),
-    }
+    },
   );
 
   const data = await res.json();
