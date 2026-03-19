@@ -646,6 +646,11 @@ class InterviewProcessController {
 
           if (scheduled_slot) {
             scheduled++;
+            // Refresh candidate availability after each successful booking
+            // This ensures booked slots are removed for subsequent interviews
+            const updatedAvailability =
+              await this.getAvailabilitySlots(candidateUserId);
+            Object.assign(candidateAvailability, updatedAvailability);
           } else {
             if (isEarlyRound) {
               return {
