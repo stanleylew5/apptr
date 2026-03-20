@@ -34,6 +34,7 @@ export function PendingApptCard({
   title,
   infoItems,
   onConfirm,
+  onReject,
   isLoading = false,
   waitingFor = "Waiting for: Both",
 }: PendingApptCardProps) {
@@ -64,7 +65,7 @@ export function PendingApptCard({
 
       <div className="flex max-w-6xl flex-col gap-3 font-medium">
         <button
-          onClick={onConfirm}
+          onClick={onReject}
           disabled={isLoading}
           className="gap-2 rounded-lg bg-red-500 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
