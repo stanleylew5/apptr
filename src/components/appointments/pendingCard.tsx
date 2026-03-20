@@ -61,8 +61,19 @@ export function PendingApptCard({
           {isLoading ? "Confirming..." : "Confirm"}
         </button>
       </div>
+
+      <div className="flex max-w-6xl flex-col gap-3 font-medium">
+        <button
+          onClick={onConfirm}
+          disabled={isLoading}
+          className="gap-2 rounded-lg bg-red-500 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isLoading ? "Rejecting..." : "Reject"}
+        </button>
+      </div>
+    
+    
     </div>
-    
-    
+
   );
 }
