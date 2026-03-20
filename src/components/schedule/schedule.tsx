@@ -58,10 +58,12 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
       hasUserConfirmed(i),
   );
   const confirmed = interviews.filter(
-    (i) => i.status !== "rejected" && i.interviewer_confirmation && i.candidate_confirmation,
+    (i) =>
+      i.status !== "rejected" &&
+      i.interviewer_confirmation &&
+      i.candidate_confirmation,
   );
-  const rejected = interviews.filter(
-    (i) => i.status === "rejected");
+  const rejected = interviews.filter((i) => i.status === "rejected");
 
   const fetchInterviews = async (userRole: string) => {
     const user = await authController.getCurrentUser();
@@ -121,7 +123,7 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
     } finally {
       setLoadingInterviewId(null);
     }
-};
+  };
 
   const handleUpdateLocation = async (interviewId: string) => {
     if (!newLocation.trim()) {
@@ -281,43 +283,43 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
       )}
 
       {rejected.length > 0 && (
-      <>
-        <div className="mt-6 mb-4">
-          <h2 className="text-2xl font-bold text-red-800">
-            Rejected Interviews
-          </h2>
-        </div>
+        <>
+          <div className="mt-6 mb-4">
+            <h2 className="text-2xl font-bold text-red-800">
+              Rejected Interviews
+            </h2>
+          </div>
 
-        <div className="space-y-3">
-          {rejected.map((interview) => (
-            <div
-              key={interview.id}
-              className="mx-auto flex items-center justify-between gap-5 rounded-md border border-red-300 bg-red-50 p-2"
-            >
-              <div className="flex flex-col">
-                <div className="flex gap-3">
-                  <div className="rounded-lg bg-red-100 px-2 text-red-600">
-                    ✕ Rejected
+          <div className="space-y-3">
+            {rejected.map((interview) => (
+              <div
+                key={interview.id}
+                className="mx-auto flex items-center justify-between gap-5 rounded-md border border-red-300 bg-red-50 p-2"
+              >
+                <div className="flex flex-col">
+                  <div className="flex gap-3">
+                    <div className="rounded-lg bg-red-100 px-2 text-red-600">
+                      ✕ Rejected
+                    </div>
+                    <div>{interview.title}</div>
                   </div>
-                  <div>{interview.title}</div>
-                </div>
 
-                <div className="flex flex-col text-gray-600">
-                  <div>{interview.date}</div>
-                  <div>{interview.timeRange}</div>
-                  <div>
-                    {role === "candidate"
-                      ? `Interviewer: ${interview.interviewerName}`
-                      : `Candidate: ${interview.candidateName}`}
+                  <div className="flex flex-col text-gray-600">
+                    <div>{interview.date}</div>
+                    <div>{interview.timeRange}</div>
+                    <div>
+                      {role === "candidate"
+                        ? `Interviewer: ${interview.interviewerName}`
+                        : `Candidate: ${interview.candidateName}`}
+                    </div>
+                    <div>{interview.location}</div>
                   </div>
-                  <div>{interview.location}</div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </>
-    )}
+            ))}
+          </div>
+        </>
+      )}
 
       {editingLocationId && (
         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">

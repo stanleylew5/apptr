@@ -26,10 +26,7 @@ export function InfoRows({ items }: InfoRowsProps) {
   );
 }
 
-export function RejectedApptCard({
-  title,
-  infoItems,
-}: RejectedApptCardProps) {
+export function RejectedApptCard({ title, infoItems }: RejectedApptCardProps) {
   return (
     <div className="mx-auto flex items-center justify-between gap-5 rounded-md border border-red-500 p-2">
       <div className="flex flex-col">

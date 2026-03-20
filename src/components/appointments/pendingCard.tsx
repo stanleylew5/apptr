@@ -63,15 +63,13 @@ export function PendingApptCard({
         </button>
       </div>
 
-        <button
-          onClick={onReject}
-          disabled={isLoading}
-          className="gap-2 rounded-lg bg-red-500 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isLoading ? "Rejecting..." : "Reject"}
-        </button>
-    
+      <button
+        onClick={onReject}
+        disabled={isLoading}
+        className="gap-2 rounded-lg bg-red-500 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isLoading ? "Rejecting..." : "Reject"}
+      </button>
     </div>
-
   );
 }
