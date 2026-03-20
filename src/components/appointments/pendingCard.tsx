@@ -4,6 +4,7 @@ type PendingApptCardProps = {
   title: string;
   infoItems: string[];
   onConfirm: () => void;
+  onReject: () => void;
   isLoading?: boolean;
   waitingFor?: string;
 };
@@ -33,6 +34,7 @@ export function PendingApptCard({
   title,
   infoItems,
   onConfirm,
+  onReject,
   isLoading = false,
   waitingFor = "Waiting for: Both",
 }: PendingApptCardProps) {
@@ -60,6 +62,14 @@ export function PendingApptCard({
           {isLoading ? "Confirming..." : "Confirm"}
         </button>
       </div>
+
+      <button
+        onClick={onReject}
+        disabled={isLoading}
+        className="gap-2 rounded-lg bg-red-500 px-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isLoading ? "Rejecting..." : "Reject"}
+      </button>
     </div>
   );
 }
