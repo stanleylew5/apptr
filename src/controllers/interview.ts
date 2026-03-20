@@ -189,10 +189,6 @@ class InterviewController {
   // Confirm an interview for a user
   async confirmInterview(interviewId: string, role: string): Promise<boolean> {
     try {
-      console.log(
-        `[confirmInterview] Confirming interview ${interviewId} for role: ${role}`,
-      );
-
       const updateData: Record<string, boolean> = {};
 
       if (role === "candidate") {
@@ -213,17 +209,8 @@ class InterviewController {
         throw error;
       }
 
-      console.log(
-        `[confirmInterview] Updated confirmation for interview ${interviewId}:`,
-        data,
-      );
-
       // If both parties confirmed, update status to confirmed (ONLY for this interview)
       if (data?.interviewer_confirmation && data?.candidate_confirmation) {
-        console.log(
-          `[confirmInterview] Both parties confirmed for ${interviewId}, updating status...`,
-        );
-
         // const { error: statusError } = await this.supabase
         await this.supabase
           .from("interviews")
@@ -238,10 +225,6 @@ class InterviewController {
         //   );
         //   throw statusError;
         // }
-
-        console.log(
-          `[confirmInterview] Status updated to confirmed for ${interviewId}`,
-        );
         if (role === "interviewer") {
           const { data: fullInterview } = await this.supabase
             .from("interviews")
@@ -287,10 +270,6 @@ class InterviewController {
     newLocation: string,
   ): Promise<boolean> {
     try {
-      console.log(
-        `[updateInterviewLocation] Updating location for interview ${interviewId} to: ${newLocation}`,
-      );
-
       const { error } = await this.supabase
         .from("interviews")
         .update({ location: newLocation })
@@ -303,8 +282,6 @@ class InterviewController {
         );
         throw error;
       }
-
-      console.log(`[updateInterviewLocation] Location updated successfully`);
       return true;
     } catch (error) {
       console.error(`[updateInterviewLocation] Unexpected error:`, error);
