@@ -13,7 +13,7 @@
 
 ## Figma
 
-[Apptr Figma Design File](https://www.figma.com/design/nHpbB9Yqsn5oYgpqj2JbzE/CS178A-Project-Design?node-id=0-1&t=xpDHVnkbEq7PaJzO-1)
+[!! OUTDATED Apptr Figma Design File](https://www.figma.com/design/nHpbB9Yqsn5oYgpqj2JbzE/CS178A-Project-Design?node-id=0-1&t=xpDHVnkbEq7PaJzO-1)
 
 ## Node.js
 
