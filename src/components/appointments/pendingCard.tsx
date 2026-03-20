@@ -63,7 +63,6 @@ export function PendingApptCard({
         </button>
       </div>
 
-      <div className="flex max-w-6xl flex-col gap-3 font-medium">
         <button
           onClick={onReject}
           disabled={isLoading}
@@ -71,8 +70,6 @@ export function PendingApptCard({
         >
           {isLoading ? "Rejecting..." : "Reject"}
         </button>
-      </div>
-    
     
     </div>
 

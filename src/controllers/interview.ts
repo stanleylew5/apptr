@@ -259,10 +259,20 @@ class InterviewController {
   // Reject an interview for a user
   async rejectInterview(interviewId: string): Promise<boolean> {
     try {
-      const { error } = await this.supabase
+
+      const { error} = await this.supabase
         .from("interviews")
         .update({ status: "rejected" })
         .eq("interview_id", interviewId)
+        .select("status, interviewer_confirmation, candidate_confirmation")
+        .single();
+
+      //const { error } = await this.supabase
+      //  .from("interviews")
+      //  .update(updateData)
+      //  .eq("interview_id", interviewId)
+      //  .select("status, interviewer_confirmation, candidate_confirmation")
+      //  .single();
       
       if (error) {
         console.error(`[rejectInterview] Error Rejecting Interview`, error);
