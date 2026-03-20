@@ -4,6 +4,7 @@ type PendingApptCardProps = {
   title: string;
   infoItems: string[];
   onConfirm: () => void;
+  onReject: () => void;
   isLoading?: boolean;
   waitingFor?: string;
 };
@@ -61,5 +62,7 @@ export function PendingApptCard({
         </button>
       </div>
     </div>
+    
+    
   );
 }

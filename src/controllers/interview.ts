@@ -216,15 +216,7 @@ class InterviewController {
           .from("interviews")
           .update({ status: "confirmed" })
           .eq("interview_id", interviewId);
-        // .single();
 
-        // if (statusError) {
-        //   console.error(
-        //     `[confirmInterview] Error updating status:`,
-        //     statusError,
-        //   );
-        //   throw statusError;
-        // }
         if (role === "interviewer") {
           const { data: fullInterview } = await this.supabase
             .from("interviews")
@@ -260,6 +252,26 @@ class InterviewController {
       return true;
     } catch (error) {
       console.error(`[confirmInterview] Unexpected error:`, error);
+      throw error;
+    }
+  }
+
+  // Reject an interview for a user
+  async rejectInterview(interviewId: string): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from("interviews")
+        .update({ status: "rejected" })
+        .eq("interview_id", interviewId)
+      
+      if (error) {
+        console.error(`[rejectInterview] Error Rejecting Interview`, error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`[rejectInterview] Unexpected error`, error);
       throw error;
     }
   }
