@@ -1,10 +1,5 @@
 "use client";
-import { Organization } from "@/types/organization";
-
-interface OrganizationCardProps {
-  organization: Organization;
-  onSelect: (org: Organization) => void;
-}
+import { OrganizationCardProps } from "@/types/organization";
 
 export const OrganizationCard = ({
   organization,
@@ -18,9 +13,6 @@ export const OrganizationCard = ({
       <h3 className="text-lg font-semibold text-blue-900">
         {organization.organization_name}
       </h3>
-      {/* <p className="text-sm text-gray-500"> FOR DEBUGGING PURPOSES ONLY
-        ID: {organization.organization_id}
-      </p> */}
     </button>
   );
 };

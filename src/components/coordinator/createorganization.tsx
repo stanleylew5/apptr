@@ -2,15 +2,7 @@
 import { useState } from "react";
 import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
-import { Organization } from "@/types/organization";
-
-interface CreateOrganizationProps {
-  isFirstOrganization: boolean;
-  onOrganizationCreated: (org: Organization) => void;
-  onCancel?: () => void;
-  error?: string | null;
-  onError?: (error: string) => void;
-}
+import { CreateOrganizationProps } from "@/types/organization";
 
 export const CreateOrganization = ({
   isFirstOrganization,

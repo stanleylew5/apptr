@@ -1,4 +1,4 @@
-import { AvailabilityType, CellAvailability } from "./types";
+import { AvailabilityType, CellAvailability } from "../../types/when2meet";
 
 const EMPTY_CELL: CellAvailability = { top: false, bottom: false };
 

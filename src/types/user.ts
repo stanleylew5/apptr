@@ -6,3 +6,5 @@ export interface User {
   interviewer?: boolean;
   candidate?: boolean;
 }
+
+export type ViewMode = "schedule" | "availability";

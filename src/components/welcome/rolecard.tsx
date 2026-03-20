@@ -1,15 +1,5 @@
-import { LucideIcon, ArrowRight } from "lucide-react";
-
-interface RoleCardProps {
-  title: string;
-  description: string;
-  bullets: string[];
-  roleType: "coordinator" | "interviewer" | "candidate";
-  linkText: string;
-  icon: LucideIcon;
-  onSelectRole: (role: "coordinator" | "interviewer" | "candidate") => void;
-  isLoading?: boolean;
-}
+import { ArrowRight } from "lucide-react";
+import { RoleCardProps } from "@/types/roles";
 
 export function RoleCard({
   title,

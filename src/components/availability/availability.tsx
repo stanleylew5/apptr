@@ -2,11 +2,15 @@
 
 import { Save } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-
 import { Cell } from "./cell";
 import { availabilityController } from "@/controllers/availability";
 import { authController } from "@/controllers/auth";
-import { AvailabilityType, DragState, TimeBlock, Half } from "./types";
+import {
+  AvailabilityType,
+  DragState,
+  TimeBlock,
+  Half,
+} from "@/types/when2meet";
 import {
   getCell,
   formatHour,

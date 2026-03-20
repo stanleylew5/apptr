@@ -2,11 +2,7 @@
 import { useEffect, useState } from "react";
 import { interviewProcessController } from "@/controllers/interviewprocess";
 import Loading from "@/components/loading";
-import { ScheduledInterview } from "@/types/interview";
-
-interface ScheduledDashboardProps {
-  organizationId: string;
-}
+import { ScheduledInterview, ScheduledDashboardProps } from "@/types/interview";
 
 export const ScheduledDashboard = ({
   organizationId,
@@ -24,13 +20,11 @@ export const ScheduledDashboard = ({
   useEffect(() => {
     const loadScheduledInterviews = async () => {
       try {
-        // Get all processes for this organization
         const orgsProcesses =
           await interviewProcessController.getProcessesByOrganization(
             organizationId,
           );
 
-        // For each process, get scheduled interviews
         const processesWithInterviews = await Promise.all(
           orgsProcesses.map(async (process) => ({
             process_id: process.process_id,
@@ -58,7 +52,6 @@ export const ScheduledDashboard = ({
     return <Loading />;
   }
 
-  // Flatten all interviews across all processes
   const allScheduledInterviews = processes.flatMap(
     (p) => p.scheduled_interviews,
   );
@@ -70,7 +63,6 @@ export const ScheduledDashboard = ({
         <div className="rounded-lg bg-red-100 p-4 text-red-700">{error}</div>
       )}
 
-      {/* Summary Stats */}
       <div className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white shadow">
         <h2 className="text-2xl font-bold">Scheduled Interviews</h2>
         <p className="mt-2 text-lg opacity-90">
@@ -78,7 +70,6 @@ export const ScheduledDashboard = ({
         </p>
       </div>
 
-      {/* Scheduled Interviews by Process */}
       {processes.length === 0 ? (
         <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-8 text-center">
           <p className="text-gray-600">

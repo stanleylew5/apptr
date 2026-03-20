@@ -124,12 +124,12 @@ class OrganizationController {
       .maybeSingle();
 
     if (fetchError) {
-      console.error("Error fetching organization:", fetchError);
+      console.error(fetchError);
       return null;
     }
 
     if (!org) {
-      console.error("Organization not found with name:", organizationName);
+      console.error(organizationName);
       return null;
     }
 

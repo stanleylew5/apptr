@@ -18,7 +18,6 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
   );
   const [newLocation, setNewLocation] = useState<string>("");
 
-  // Helper function to check if user has confirmed based on their role
   const hasUserConfirmed = (interview: Interview): boolean => {
     if (role === "candidate") {
       return interview.candidate_confirmation || false;
@@ -28,7 +27,6 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
     return false;
   };
 
-  // Helper function to determine who we're waiting on
   const getWaitingFor = (interview: Interview): string => {
     if (
       interview.candidate_confirmation &&
@@ -44,7 +42,6 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
     }
   };
 
-  // Filter interviews based on confirmation status
   const awaitingUserConfirmation = interviews.filter(
     (i) =>
       i.status !== "rejected" &&
@@ -100,8 +97,6 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
     try {
       setLoadingInterviewId(interviewId);
       await interviewController.confirmInterview(interviewId, role);
-
-      // Refresh the interviews list
       await fetchInterviews(role);
     } catch (error) {
       console.error("Error confirming interview:", error);
@@ -138,7 +133,6 @@ export function Schedule({ forceRole }: { forceRole?: string | null }) {
         newLocation,
       );
 
-      // Refresh the interviews list and close modal
       await fetchInterviews(role);
       setEditingLocationId(null);
       setNewLocation("");

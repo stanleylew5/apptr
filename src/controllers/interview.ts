@@ -209,7 +209,6 @@ class InterviewController {
         throw error;
       }
 
-      // If both parties confirmed, update status to confirmed (ONLY for this interview)
       if (data?.interviewer_confirmation && data?.candidate_confirmation) {
         // const { error: statusError } = await this.supabase
         await this.supabase

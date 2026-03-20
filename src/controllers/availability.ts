@@ -1,22 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { authController } from "./auth";
-
+import { AvailabilityRecord, TimeSlot } from "@/types/availability";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-interface AvailabilityRecord {
-  availability_id: string;
-  user_id: string;
-  start_time: string;
-  end_time: string;
-  created_at?: string;
-}
-
-interface TimeSlot {
-  day: string;
-  startTime: string;
-  endTime: string;
-}
 
 class AvailabilityController {
   private supabase: SupabaseClient;
@@ -47,7 +33,7 @@ class AvailabilityController {
 
       return data || [];
     } catch (error) {
-      console.error("[fetchUserAvailability] Unexpected error:", error);
+      console.error(error);
       return [];
     }
   }
@@ -69,34 +55,27 @@ class AvailabilityController {
 
       return data || [];
     } catch (error) {
-      console.error(
-        `[fetchAvailabilityByUserId] Unexpected error for user ${userId}:`,
-        error,
-      );
+      console.error(error);
       return [];
     }
   }
 
-  /* Convert database timestamptz to date string (YYYY-MM-DD) */
+  // Convert database timestamptz to format (YYYY-MM-DD)
   private extractDate(timestamp: string): string {
     const date = new Date(timestamp);
     return date.toISOString().split("T")[0];
   }
 
-  /**
-   * Convert database timestamptz to time string ("9:00 AM")
-   * Converts from UTC back to America/Los_Angeles timezone
-   */
+  // Convert database timestamptz type to format ("9:00 AM") and UTC back to PST timezone
   private extractTime(timestamp: string): string {
     const date = new Date(timestamp);
 
-    // Get the date part in UTC
     const utcYear = date.getUTCFullYear();
     const utcMonth = String(date.getUTCMonth() + 1).padStart(2, "0");
     const utcDay = String(date.getUTCDate()).padStart(2, "0");
     const dateStr = `${utcYear}-${utcMonth}-${utcDay}`;
 
-    // Calculate the timezone offset for this specific date
+    // find the offset in hours
     const testDate = new Date(dateStr + "T12:00:00");
     const utcHour = testDate.getUTCHours();
     const localString = testDate.toLocaleString("en-US", {
@@ -107,11 +86,9 @@ class AvailabilityController {
     const localHour = parseInt(localString);
     const offset = utcHour - localHour;
 
-    // Subtract the offset from UTC hours to get local time
     let hours = date.getUTCHours() - offset;
     const minutes = date.getUTCMinutes();
 
-    // Handle day wrapping
     if (hours < 0) {
       hours += 24;
     } else if (hours >= 24) {
@@ -125,7 +102,6 @@ class AvailabilityController {
     return `${hours}:${minuteStr} ${period}`;
   }
 
-  /* Transform database records into When2Meet component format */
   transformToComponentFormat(records: AvailabilityRecord[]): TimeSlot[] {
     return records.map((record) => ({
       day: this.extractDate(record.start_time),
@@ -134,13 +110,11 @@ class AvailabilityController {
     }));
   }
 
-  /* Get current user's availability in component format */
   async getUserAvailabilityForComponent(): Promise<TimeSlot[]> {
     const records = await this.fetchUserAvailability();
     return this.transformToComponentFormat(records);
   }
 
-  /* Transform component format back to database format */
   transformToDatabaseFormat(
     timeSlots: TimeSlot[],
     userId: string,
@@ -157,9 +131,8 @@ class AvailabilityController {
     });
   }
 
-  /* Combine date and time strings into ISO timestamp (UTC) */
+  // Combine date and time strings into UTC
   private combineDateTime(dateStr: string, timeStr: string): string {
-    // Parse time string (e.g., "9:00 AM")
     const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
 
     if (!timeMatch) throw new Error(`Invalid time format: ${timeStr}`);
@@ -168,29 +141,23 @@ class AvailabilityController {
     const minutes = parseInt(timeMatch[2]);
     const period = timeMatch[3].toUpperCase();
 
-    // Convert to 24-hour format
     if (period === "PM" && hours !== 12) {
       hours += 12;
     } else if (period === "AM" && hours === 12) {
       hours = 0;
     }
 
-    // Calculate timezone offset for this specific date (accounts for daylight saving)
     const testDate = new Date(dateStr + "T12:00:00");
     const utcHour = testDate.getUTCHours();
 
-    // Get the local hour using toLocaleString in America/Los_Angeles timezone
     const localString = testDate.toLocaleString("en-US", {
       timeZone: "America/Los_Angeles",
       hour: "numeric",
       hour12: false,
     });
     const localHour = parseInt(localString);
-
-    // Calculate offset: positive = ahead of UTC
     const offset = utcHour - localHour;
 
-    // Create date at UTC midnight, then set UTC time adjusted by timezone offset
     const date = new Date(dateStr + "T00:00:00Z");
     date.setUTCHours(hours + offset, minutes, 0, 0);
 
@@ -201,10 +168,7 @@ class AvailabilityController {
     try {
       const userId = await authController.getCurrentUserId();
 
-      if (!userId) {
-        console.error("User not authenticated");
-        return false;
-      }
+      if (!userId) return false;
 
       const { error: deleteError } = await this.supabase
         .from("availability")
@@ -216,7 +180,6 @@ class AvailabilityController {
         return false;
       }
 
-      // Insert new availability
       if (timeSlots.length > 0) {
         const dataToInsert = this.transformToDatabaseFormat(timeSlots, userId);
 
@@ -235,7 +198,7 @@ class AvailabilityController {
 
       return true;
     } catch (error) {
-      console.error("[saveAvailability] Unexpected error:", error);
+      console.error(error);
       return false;
     }
   }
@@ -244,10 +207,7 @@ class AvailabilityController {
     try {
       const userId = await authController.getCurrentUserId();
 
-      if (!userId) {
-        console.error("User not authenticated");
-        return false;
-      }
+      if (!userId) return false;
 
       const { error } = await this.supabase
         .from("availability")
@@ -262,7 +222,7 @@ class AvailabilityController {
 
       return true;
     } catch (error) {
-      console.error("Unexpected error deleting availability:", error);
+      console.error(error);
       return false;
     }
   }
@@ -323,15 +283,11 @@ class AvailabilityController {
     try {
       const userId = await authController.getCurrentUserId();
 
-      if (!userId) {
-        console.error("User not authenticated");
-        return false;
-      }
+      if (!userId) return false;
 
       const startTimestamp = new Date(startDate).toISOString();
       const endTimestamp = new Date(endDate + "T23:59:59").toISOString();
 
-      // Delete all availability NOT within the specified range
       const { error } = await this.supabase
         .from("availability")
         .delete()

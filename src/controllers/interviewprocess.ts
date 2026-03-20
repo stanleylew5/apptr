@@ -823,24 +823,21 @@ class InterviewProcessController {
     candidateUserId: string,
     interviewerLoadMap: Record<string, number>,
   ): Promise<boolean> {
-    // Get available interviewers for this category
     const interviewers = await this.getInterviewersForCategory(
       interview.category_id,
     );
 
-    // Sort interviewers by current load (least loaded first)
+    // Sort interviewers by current load -- obviously those with the least interviews are first
     const sortedInterviewers = interviewers.sort((a, b) => {
       const loadA = interviewerLoadMap[a.interviewer_id] ?? 0;
       const loadB = interviewerLoadMap[b.interviewer_id] ?? 0;
       return loadA - loadB;
     });
 
-    // Try to find a common time slot with an interviewer (starting with least loaded)
     for (const { interviewer_id, user_id } of sortedInterviewers) {
       const interviewerAvailability = await this.getAvailabilitySlots(user_id);
       if (interviewerAvailability.length === 0) continue;
 
-      // Find a matching time slot
       const matchedSlot = this.findCommonTimeSlot(
         candidateAvailability,
         interviewerAvailability,
@@ -862,8 +859,8 @@ class InterviewProcessController {
         if (error) {
           console.error(error);
         } else {
-          // Remove the booked slot from both candidate and interviewer availability
           await this.removeBookedSlotFromAvailability(
+            // Remove the booked slot from both candidate and interviewer availability
             candidateUserId,
             matchedSlot.start,
             matchedSlot.end,
@@ -874,7 +871,7 @@ class InterviewProcessController {
             matchedSlot.end,
           );
 
-          // Update load tracking
+          // update p queue
           interviewerLoadMap[interviewer_id] =
             (interviewerLoadMap[interviewer_id] ?? 0) + 1;
           return true;
@@ -890,7 +887,6 @@ class InterviewProcessController {
     slots2: Array<{ start: Date; end: Date }>,
     durationMinutes: number,
   ): { start: Date; end: Date } | null {
-    // Try to find overlapping time slot between two sets of availability
     for (let i = 0; i < slots1.length; i++) {
       for (let j = 0; j < slots2.length; j++) {
         const slot1 = slots1[i];
@@ -908,7 +904,6 @@ class InterviewProcessController {
 
         if (overlapDurationMs >= durationMs) {
           return {
-            // valid time slot has been found
             start: overlapStart,
             end: new Date(overlapStart.getTime() + durationMs),
           };
@@ -933,12 +928,10 @@ class InterviewProcessController {
       const bookedStartTime = bookedStart.getTime();
       const bookedEndTime = bookedEnd.getTime();
 
-      // Process each availability record
       for (const record of records) {
         const recordStart = new Date(record.start_time).getTime();
         const recordEnd = new Date(record.end_time).getTime();
 
-        // Check if there's an overlap
         const overlapStart = Math.max(bookedStartTime, recordStart);
         const overlapEnd = Math.min(bookedEndTime, recordEnd);
 
@@ -964,7 +957,6 @@ class InterviewProcessController {
             .eq("availability_id", record.availability_id);
 
           if (updateError) console.error(updateError);
-          // Create NEW record for time AFTER the booking
           const newStartTime = new Date(bookedEndTime).toISOString();
 
           const { error: insertError } = await this.supabase

@@ -84,8 +84,8 @@ class AuthController {
 
   async getUserPrimaryRole(user: User): Promise<string | null> {
     const { coordinator, interviewer, candidate } = user;
-
     // Priority order: candidate > interviewer > coordinator but we allow access to all pages for now just cause we are testing..
+    // normal scenarios we would never need this but for testing we want the users to have multiple roles to avoid editing the db every time we need to test something
     if (candidate) return "candidate";
     if (interviewer) return "interviewer";
     if (coordinator) return "coordinator";

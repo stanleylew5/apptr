@@ -46,3 +46,22 @@ export interface ScheduledInterview {
   status: string;
   location: string | null;
 }
+
+export interface InterviewCardProps {
+  interview: {
+    interview_id: string;
+    candidate_name: string;
+    interviewer_name: string | null;
+    category_name: string;
+    round: number;
+    scheduled_start: string | null;
+    scheduled_end: string | null;
+    status: string;
+    interviewer_confirmation: boolean;
+    candidate_confirmation: boolean;
+  };
+}
+
+export interface ScheduledDashboardProps {
+  organizationId: string;
+}

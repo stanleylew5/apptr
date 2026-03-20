@@ -1,13 +1,5 @@
 import { Calendar, Clock, User, MapPin } from "lucide-react";
-
-type RejectedApptCardProps = {
-  title: string;
-  infoItems: string[];
-};
-
-type InfoRowsProps = {
-  items: string[];
-};
+import { RejectedApptCardProps, InfoRowsProps } from "@/types/appointments";
 
 export function InfoRows({ items }: InfoRowsProps) {
   const icons = [Calendar, Clock, User, MapPin];

@@ -22,7 +22,6 @@ export function Roles() {
       }
       const success = await authController.setUserRole(userId, role);
       if (success) {
-        // Redirect to their role page
         router.push(`/${role}`);
       } else {
         console.error("Failed to set user role");

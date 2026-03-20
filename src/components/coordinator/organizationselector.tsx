@@ -3,13 +3,9 @@ import { useEffect, useState } from "react";
 import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
 import Loading from "@/components/loading";
-import { Organization } from "@/types/organization";
+import { Organization, OrganizationSelectorProps } from "@/types/organization";
 import { OrganizationCard } from "./organizationcard";
 import { CreateOrganization } from "./createorganization";
-
-interface OrganizationSelectorProps {
-  onOrganizationSelected: (org: Organization) => void;
-}
 
 export const OrganizationSelector = ({
   onOrganizationSelected,
@@ -51,9 +47,7 @@ export const OrganizationSelector = ({
     handleSelectOrganization(newOrg);
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-6 py-12">

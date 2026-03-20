@@ -1,17 +1,5 @@
 import { Calendar, Clock, User, MapPin } from "lucide-react";
-
-type PendingApptCardProps = {
-  title: string;
-  infoItems: string[];
-  onConfirm: () => void;
-  onReject: () => void;
-  isLoading?: boolean;
-  waitingFor?: string;
-};
-
-type InfoRowsProps = {
-  items: string[];
-};
+import { PendingApptCardProps, InfoRowsProps } from "@/types/appointments";
 
 export function InfoRows({ items }: InfoRowsProps) {
   const icons = [Calendar, Clock, User, MapPin];

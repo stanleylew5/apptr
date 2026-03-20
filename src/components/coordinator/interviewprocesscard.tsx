@@ -2,19 +2,7 @@
 import { useEffect, useState } from "react";
 import { interviewProcessController } from "@/controllers/interviewprocess";
 import { ProcessRoundsList } from "./processroundslist";
-import { InterviewProcess } from "@/types/process";
-
-interface InterviewProcessCardProps {
-  process: InterviewProcess;
-  onScheduleComplete?: () => Promise<void> | void;
-}
-
-interface SchedulingResult {
-  success: boolean;
-  scheduled: number;
-  failed: Array<{ candidateName: string; round: number; categoryName: string }>;
-  message: string;
-}
+import { InterviewProcessCardProps, SchedulingResult } from "@/types/process";
 
 export const InterviewProcessCard = ({
   process,
@@ -60,8 +48,8 @@ export const InterviewProcessCard = ({
       );
       setSchedulingResult(result);
       setShowResultModal(true);
-      // Refresh unscheduled count after scheduling
-      const allInterviews =
+
+      const allInterviews = // Refresh unscheduled count after scheduling
         await interviewProcessController.getAllInterviewsForProcess(
           process.process_id,
         );
@@ -70,10 +58,8 @@ export const InterviewProcessCard = ({
       ).length;
       setUnscheduledCount(unscheduled);
 
-      // Call parent callback to refresh the process list
-      if (onScheduleComplete) {
-        await onScheduleComplete();
-      }
+      // refresh the process list so user doesn't have to reload the page
+      if (onScheduleComplete) await onScheduleComplete();
     } catch (error) {
       console.error("[autoSchedule] Error:", error);
       setSchedulingResult({
@@ -100,9 +86,6 @@ export const InterviewProcessCard = ({
               <h3 className="text-2xl font-bold text-purple-900">
                 {process.process_name || "Unnamed Process"}
               </h3>
-              {/* <p className="text-sm text-gray-500 mt-1">
-                Process ID: {process.process_id}
-              </p> */}
             </div>
             <div className="ml-4">
               <svg

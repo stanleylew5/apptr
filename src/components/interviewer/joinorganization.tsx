@@ -3,11 +3,7 @@ import { useEffect, useState } from "react";
 import { organizationController } from "@/controllers/organization";
 import { authController } from "@/controllers/auth";
 import Loading from "@/components/loading";
-import { Organization } from "@/types/organization";
-
-interface JoinOrganizationProps {
-  onOrganizationSelected: (org: Organization) => void;
-}
+import { Organization, JoinOrganizationProps } from "@/types/organization";
 
 export const JoinOrganization = ({
   onOrganizationSelected,
@@ -92,9 +88,7 @@ export const JoinOrganization = ({
     }
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-6 py-12">
@@ -135,7 +129,6 @@ export const JoinOrganization = ({
           </div>
         )}
 
-        {/* Join new organization form */}
         <div className="rounded-lg border-2 border-blue-200 bg-white p-8 shadow-lg">
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
             Join New Organization

@@ -31,7 +31,7 @@ src/components
 src/controllers
 
 # Library functions
-src/lib 
+src/lib
 
 # Types and Interfaces
 src/types
@@ -39,7 +39,6 @@ src/types
 #  Small, generic, and reusable helper/utility functions that do not belong to a specific feature, component, or module
 src/utils
 ```
-
 
 ## Figma
 

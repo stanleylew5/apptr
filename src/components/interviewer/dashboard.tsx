@@ -8,8 +8,7 @@ import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
 import { JoinOrganization } from "@/components/interviewer/joinorganization";
 import { Organization } from "@/types/organization";
-
-type ViewMode = "schedule" | "availability";
+import { ViewMode } from "@/types/user";
 
 const Dashboard = () => {
   const [fullName, setFullName] = useState<string | null>(null);
@@ -47,19 +46,14 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
-  if (!userId) {
-    return <AccessDenied />;
-  }
+  if (!userId) return <AccessDenied />;
 
-  if (!selectedOrganization) {
+  if (!selectedOrganization)
     return (
       <JoinOrganization onOrganizationSelected={handleOrganizationSelected} />
     );
-  }
 
   return (
     <div className="mt-4 mb-10 px-20">

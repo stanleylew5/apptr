@@ -1,4 +1,4 @@
-import { CellProps, Half } from "./types";
+import { CellProps, Half } from "@/types/when2meet";
 
 export function Cell({
   dateKey,

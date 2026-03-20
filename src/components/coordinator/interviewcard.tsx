@@ -1,31 +1,15 @@
 "use client";
-
 import { Clock, User, CheckCircle, AlertCircle, Hourglass } from "lucide-react";
-
-interface InterviewCardProps {
-  interview: {
-    interview_id: string;
-    candidate_name: string;
-    interviewer_name: string | null;
-    category_name: string;
-    round: number;
-    scheduled_start: string | null;
-    scheduled_end: string | null;
-    status: string;
-    interviewer_confirmation: boolean;
-    candidate_confirmation: boolean;
-  };
-}
+import { InterviewCardProps } from "@/types/interview";
 
 export const InterviewCard = ({ interview }: InterviewCardProps) => {
   const isScheduled =
     interview.status === "confirmed" && interview.scheduled_start;
 
-  // Convert UTC to PST/PDT
+  // Convert UTC to PST
   const convertToPST = (utcDateStr: string | null) => {
     if (!utcDateStr) return null;
     const utcDate = new Date(utcDateStr);
-    // Create options for PST (UTC-7/8). Use toLocaleString with en-US timezone
     const pstDate = new Date(
       utcDate.toLocaleString("en-US", {
         timeZone: "America/Los_Angeles",

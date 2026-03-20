@@ -1,32 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ProcessRound } from "@/types/process";
+import { ProcessRoundsListProps } from "@/types/process";
 import { interviewProcessController } from "@/controllers/interviewprocess";
 import { InterviewCard } from "./interviewcard";
-
-interface ProcessRoundsListProps {
-  rounds: ProcessRound[];
-  processId: string;
-}
-
-interface Interview {
-  interview_id: string;
-  candidate_name: string;
-  interviewer_name: string | null;
-  category_name: string;
-  round: number;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
-  status: string;
-  interviewer_confirmation: boolean;
-  candidate_confirmation: boolean;
-}
+import { InterviewCardProps } from "@/types/interview";
 
 export const ProcessRoundsList = ({
   rounds,
   processId,
 }: ProcessRoundsListProps) => {
-  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [interviews, setInterviews] = useState<
+    InterviewCardProps["interview"][]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,7 +83,6 @@ export const ProcessRoundsList = ({
               </div>
             </div>
 
-            {/* Display Interviews */}
             {!loading && roundInterviews.length > 0 && (
               <div className="mt-6 space-y-3 border-t-2 border-blue-100 pt-6">
                 {roundInterviews.map((interview) => (

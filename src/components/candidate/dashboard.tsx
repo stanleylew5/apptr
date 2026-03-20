@@ -6,8 +6,7 @@ import Availability from "@/components/availability/availability";
 import { Schedule } from "@/components/schedule/schedule";
 import Loading from "@/components/loading";
 import { AccessDenied } from "@/components/accessdenied";
-
-type ViewMode = "schedule" | "availability";
+import { ViewMode } from "@/types/user";
 
 const Dashboard = () => {
   const [fullName, setFullName] = useState<string | null>(null);
