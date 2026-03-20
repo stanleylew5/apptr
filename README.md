@@ -15,6 +15,32 @@
 
 Coordinating interviews between candidates and interviewers is a slow process, especially when a candidate must do several rounds of interviews. Apptr streamlines this process by collecting the availability of all interview interviewers and interviewees, storing it centrally, and generating schedule options that fit everyone’s availability. The target consumer base for our product is organizations that require several rounds of interviews in the candidate hiring process. These organizations can use Apptr to optimize the interview coordination process and enhance the interview experience for all parties involved. Creating this product was not a trivial task, as our team had to take into account the many intricacies of making an interview scheduling web app, such as the setup of role-based access, creation of interview processes, and availability matching. All members in our team worked together to take Apptr from an idea to a finished product, and there were no issues among members.
 
+## Main File Structure
+
+```bash
+# The location of all images/svgs/logos used
+public
+
+# The View -- The very top-level folder that defines our page's routes and calls components
+src/app
+
+# Model -- The components that are styled and directly use the controllers
+src/components
+
+# Controller -- functions that help us follow a Model View Controller (MVC) architecture and interact directly with Supabase (inspired by knowledge from CS180)
+src/controllers
+
+# Library functions
+src/lib 
+
+# Types and Interfaces
+src/types
+
+#  Small, generic, and reusable helper/utility functions that do not belong to a specific feature, component, or module
+src/utils
+```
+
+
 ## Figma
 
 [!! OUTDATED Apptr Figma Design File](https://www.figma.com/design/nHpbB9Yqsn5oYgpqj2JbzE/CS178A-Project-Design?node-id=0-1&t=xpDHVnkbEq7PaJzO-1)
