@@ -211,41 +211,38 @@ class InterviewController {
       }
 
       if (data?.interviewer_confirmation && data?.candidate_confirmation) {
-        // const { error: statusError } = await this.supabase
         await this.supabase
           .from("interviews")
           .update({ status: "confirmed" })
           .eq("interview_id", interviewId);
 
-        if (role === "interviewer") {
-          const { data: fullInterview } = await this.supabase
+        const { data: fullInterview } = await this.supabase
+          .from("interviews")
+          .select(
+            `
+          *,
+          candidates(email)
+        `,
+          )
+          .eq("interview_id", interviewId)
+          .single();
+
+        if (fullInterview && !fullInterview.calendar_event_created) {
+          await createCalendarEvent({
+            scheduled_start: fullInterview.scheduled_start,
+            scheduled_end: fullInterview.scheduled_end,
+            location: fullInterview.location,
+            candidate: {
+              email: fullInterview.candidates?.email,
+            },
+          });
+
+          await this.supabase
             .from("interviews")
-            .select(
-              `
-              *,
-              candidates(email)
-            `,
-            )
-            .eq("interview_id", interviewId)
-            .single();
+            .update({ calendar_event_created: true })
+            .eq("interview_id", interviewId);
 
-          if (fullInterview && !fullInterview.calendar_event_created) {
-            await createCalendarEvent({
-              scheduled_start: fullInterview.scheduled_start,
-              scheduled_end: fullInterview.scheduled_end,
-              location: fullInterview.location,
-              candidate: {
-                email: fullInterview.candidates?.email,
-              },
-            });
-
-            await this.supabase
-              .from("interviews")
-              .update({ calendar_event_created: true })
-              .eq("interview_id", interviewId);
-
-            console.log(`[confirmInterview] Calendar event created`);
-          }
+          console.log("[confirmInterview] Calendar event created");
         }
       }
 
