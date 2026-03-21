@@ -129,6 +129,7 @@ class InterviewController {
           interviewers(users(full_name))
         `,
         )
+        .neq("status", "unscheduled")
         .order("scheduled_start", { ascending: true });
 
       if (role === "candidate") {
